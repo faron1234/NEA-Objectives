@@ -1,6 +1,7 @@
 from PlayerClass import Player
 import pygame
 import math
+import DrawClass
 from TextClass import *
 
 pygame.init()
@@ -21,11 +22,16 @@ font = pygame.font.Font("MainFont.otf", 15)
 
 def Play():
     angleText = Text(font)
+    DrawClass.drawMenu(screenW, screenH)
     while True:
         # statements every frame
         screen.fill((255, 255, 255))
         clock.tick(fps)
         mx, my = pygame.mouse.get_pos()
+
+        # draw map
+        DrawClass.Menu.drawMap(screen)
+        
         player.drawPlayer(playerImage, screen)
         player.facingLine(20, screen)
 
