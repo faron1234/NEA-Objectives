@@ -3,7 +3,7 @@ import pygame
 import math
 import DrawClass
 from TextClass import *
-
+# test
 pygame.init()
 
 player = Player(500, 500)
