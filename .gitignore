@@ -2,7 +2,6 @@ poetry.lock
 pyproject.toml
 .replit
 .breakpoints
-venv
 __pycache__/DrawClass.cpython-38.pyc
 __pycache__/PlayerClass.cpython-38.pyc
 __pycache__/TextClass.cpython-38.pyc
