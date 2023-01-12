@@ -1,4 +1,5 @@
 from math import sin, cos, atan, pi
+from static import Colours
 import pygame
 
 
@@ -9,18 +10,27 @@ class Player:
         self.facingAngle = 1
         self.xChange = 1
         self.yChange = 1
-        self.col = (0, 0, 0)
+        self.col = Colours.black
 
-    # draw player
-    def drawPlayer(self, image, screen):
-        screen.blit(image, (self.x - 47, self.y - 47))
+    def drawPlayer(self):
+        pass
+        # pygame.draw.rect(screen, self.col, [self.x - characterWidth / 2, self.y - characterWidth / 2,
+        # characterWidth, characterHeight * 3 / 2])
+
+    def changeCol(self, newCol):
+        self.col = newCol
 
     # draw players pointer
     def facingLine(self, length, screen):
         self.yChange = -sin(self.facingAngle) * length
         self.xChange = cos(self.facingAngle) * length
-        pygame.draw.line(screen, (0, 0, 0), [self.x, self.y],
-                         [self.x + self.xChange, self.y + self.yChange], 3)
+        pygame.draw.aaline(screen, Colours.black, [self.x, self.y],
+                           [self.x + self.xChange, self.y + self.yChange], 3)
+
+    # updates the players position
+    def updatePos(self, newX, newY):
+        self.x = newX
+        self.y = newY
 
     # finds what angle the player is facing
     def findAngle(self, mx, my, opposite, adjacent):
@@ -46,3 +56,20 @@ class Player:
         elif my == self.y and mx < self.x:
             self.facingAngle = pi
         return self.facingAngle
+
+
+class SpritesClass(pygame.sprite.Sprite):
+    def __init__(self, imagePath):
+        super().__init__()
+        self.image = pygame.Surface([10, 10])
+        self.rect = self.image.get_rect()
+        self.image = pygame.transform.scale((pygame.image.load(imagePath)), (100, 100))
+
+    def update(self, x, y):
+        self.rect.center = (x - 40, y - 40)
+
+
+playerSprite = SpritesClass("SpriteImages/Stationary.xcf")
+playerRight = ()
+allSprites = pygame.sprite.Group()
+allSprites.add(playerSprite)

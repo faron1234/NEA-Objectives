@@ -1,9 +1,9 @@
 class Text:
     def __init__(self, font, name=None, x=None, y=None):
+        self.font = font
         self.name = name
         self.x = x
         self.y = y
-        self.font = font
 
     # renders the text then draws text to the screen
     def write(self, screen, col):
