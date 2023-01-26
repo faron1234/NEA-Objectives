@@ -1,4 +1,3 @@
-from ObstacleClass import obstacles
 from math import sin, cos
 import pygame
 
@@ -33,7 +32,5 @@ class Projectile:
 
     # detects for collisions
     def collision(self, depth, screenW, screenH):
-        for obj in obstacles:
-            pass
         if self.x < depth or self.x > screenW - depth or self.y < depth or self.y > screenH - depth:
             return True

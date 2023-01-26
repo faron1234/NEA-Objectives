@@ -39,9 +39,9 @@ class Vector:
             self.j = vec.j
 
 
-gravity = Vector(0, 1.15)
+gravity = Vector(0, 1)
 vel = Vector(0, 0)
 posVec = Vector(100, 100)
 acceleration = Vector(0.25, 0)
-deceleration = Vector(0.90, 0)
+deceleration = Vector(0.9, 0)
 terminalVel = Vector(5, 10)

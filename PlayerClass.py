@@ -1,21 +1,50 @@
-from math import sin, cos, atan, pi
+from math import sin, cos, atan, pi, ceil, floor
 from static import Colours
 import pygame
 
 
-class Player:
-    def __init__(self, x, y):
+class PlayerSprite(pygame.sprite.Sprite):
+    def __init__(self, imagePath, x, y):
+        super().__init__()
         self.x = x
         self.y = y
-        self.facingAngle = 1
-        self.xChange = 1
-        self.yChange = 1
+        self.facingAngle = 0
+        self.xChange = None
+        self.yChange = None
+        self.canJump = True
         self.col = Colours.black
+        self.image = pygame.Surface([10, 10])
+        self.image = pygame.image.load(imagePath)
+        self.rect = self.image.get_rect()
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
 
-    def drawPlayer(self):
-        pass
-        # pygame.draw.rect(screen, self.col, [self.x - characterWidth / 2, self.y - characterWidth / 2,
-        # characterWidth, characterHeight * 3 / 2])
+    def update(self, newX, newY):
+        self.x, self.y = newX, newY
+        self.rect.center = (newX, newY)
+
+    def drawPlayer(self, screen):
+        screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, self.col, self.rect, 2)
+
+    def objectCollide(self, sprites, vel):
+        for sprite in sprites:
+            if vel.i > 0:
+                if sprite.rect.colliderect(self.rect.x + ceil(vel.i), self.rect.y, self.width, self.height):
+                    vel.i = 0
+            elif vel.i <= 0:
+                if sprite.rect.colliderect(self.rect.x + floor(vel.i), self.rect.y, self.width, self.height):
+                    vel.i = 0
+            if sprite.rect.colliderect(self.rect.x, self.rect.y + vel.j, self.width, self.height):
+                if vel.j < 0:
+                    vel.j = sprite.rect.bottom - self.rect.top
+                elif vel.j >= 0:
+                    vel.j = sprite.rect.top - self.rect.bottom
+
+    def portalCollide(self, sprites):
+        for sprite in sprites:
+            if sprite.rect.colliderect(self.rect.x, self.rect.y, self.width, self.height):
+                return sprite
 
     def changeCol(self, newCol):
         self.col = newCol
@@ -26,11 +55,6 @@ class Player:
         self.xChange = cos(self.facingAngle) * length
         pygame.draw.aaline(screen, Colours.black, [self.x, self.y],
                            [self.x + self.xChange, self.y + self.yChange], 3)
-
-    # updates the players position
-    def updatePos(self, newX, newY):
-        self.x = newX
-        self.y = newY
 
     # finds what angle the player is facing
     def findAngle(self, mx, my, opposite, adjacent):
@@ -56,20 +80,3 @@ class Player:
         elif my == self.y and mx < self.x:
             self.facingAngle = pi
         return self.facingAngle
-
-
-class SpritesClass(pygame.sprite.Sprite):
-    def __init__(self, imagePath):
-        super().__init__()
-        self.image = pygame.Surface([10, 10])
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale((pygame.image.load(imagePath)), (100, 100))
-
-    def update(self, x, y):
-        self.rect.center = (x - 40, y - 40)
-
-
-playerSprite = SpritesClass("SpriteImages/Stationary.xcf")
-playerRight = ()
-allSprites = pygame.sprite.Group()
-allSprites.add(playerSprite)
