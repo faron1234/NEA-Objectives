@@ -38,6 +38,15 @@ class Vector:
         elif component == "j":
             self.j = vec.j
 
+    def setVec(self, newI, newJ):
+        self.i = newI
+        self.j = newJ
+
+    def swapVec(self):
+        tempI = self.i
+        self.i = self.j
+        self.j = tempI
+
 
 gravity = Vector(0, 1)
 vel = Vector(0, 0)

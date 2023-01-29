@@ -19,9 +19,13 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.width = self.image.get_width()
         self.height = self.image.get_height()
 
-    def update(self, newX, newY):
+    def update(self):
+        if not self.x and not self.y:
+            return
+        self.rect.center = (self.x, self.y)
+
+    def setPos(self, newX, newY):
         self.x, self.y = newX, newY
-        self.rect.center = (newX, newY)
 
     def drawPlayer(self, screen):
         screen.blit(self.image, self.rect)

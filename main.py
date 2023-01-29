@@ -14,23 +14,27 @@ from math import *
 
 pygame.init()
 
-allSprites = pygame.sprite.Group()
+objSprites = pygame.sprite.Group()
 playerSprites = pygame.sprite.Group()
 portalSprites = pygame.sprite.Group()
-player = PlayerSprite("SpriteImages/Stationary.xcf", posVec.i, posVec.j)
+projectileSprites = pygame.sprite.Group()
 
-ob1 = ObstacleSprite(500, 850, 100, 50)
+player = PlayerSprite("SpriteImages/Stationary.xcf", posVec.i, posVec.j)
+playerSprites.add(player)
+
+ob1 = ObstacleSprite(500, 450, 300, 300)
 ob2 = ObstacleSprite(900, 750, 100, 300)
 ob3 = ObstacleSprite(1000, 1000, 100, 100)
 obstacles = [ob1, ob2, ob3]
-playerSprites.add(player)
-allSprites.add(ob1, ob2, ob3)
+objSprites.add(ob1, ob2, ob3)
 
-L1 = Line()
-roof = Line()
-wall1 = Line()
-ground = Line()
-wall2 = Line()
+portal = PortalSprite(Colours.blue)
+portalSprites.add(portal)
+portal2 = PortalSprite(Colours.orange)
+portalSprites.add(portal2)
+
+projectile = ProjectileSprite()
+projectile2 = ProjectileSprite()
 
 # pygame.mouse.set_visible(False)
 
@@ -40,6 +44,19 @@ screen = pygame.display.set_mode((size.current_w, size.current_h))
 
 screenW = size.current_w
 screenH = size.current_h
+
+L1 = Line()
+roof = Line(depth, depth, screenW - depth, depth)
+wall1 = Line(depth, depth, depth, screenH - depth)
+ground = Line(depth, screenH - depth, screenW - depth, screenH - depth)
+wall2 = Line(screenW - depth, depth, screenW - depth, screenH - depth)
+
+collisionObj = [roof, wall1, ground, wall2]
+for obj in obstacles:
+    collisionObj.append(Line(obj.obstacleX, obj.obstacleY, obj.obstacleX + obj.width, obj.obstacleY))
+    collisionObj.append(Line(obj.obstacleX, obj.obstacleY, obj.obstacleX, obj.obstacleY + obj.height))
+    collisionObj.append(Line(obj.obstacleX, obj.obstacleY + obj.height, obj.obstacleX + obj.width, obj.obstacleY + obj.height))
+    collisionObj.append(Line(obj.obstacleX + obj.width, obj.obstacleY, obj.obstacleX + obj.width, obj.obstacleY + obj.height))
 
 menuFont = pygame.font.Font("static/MainFont.otf", int(screenW / 12.5))
 nodeFont = pygame.font.Font("static/MainFont.otf", int(screenW / 32.5))
@@ -51,6 +68,17 @@ menuText = Text(menuFont, 'Portal Game', 70, 200)
 BackgroundNoise = mixer.Sound("static/Still Alive.mp3")
 backgroundMusic = pygame.mixer.Sound
 click = mixer.Sound("static/buttonClick.wav")
+
+
+def exitButton(leftMouse, mx, my):
+    # exit button
+    DrawClass.Menu.lines["xButton"].colour = Colours.black
+    if DrawClass.Menu.lines["xButton"].drawing is not None and DrawClass.Menu.lines["xButton"].drawing.collidepoint(mx, my):
+        DrawClass.Menu.lines["xButton"].colour = Colours.red
+        if leftMouse:
+            click.play()
+            pygame.time.wait(160)
+            quit()
 
 
 def Menu():
@@ -76,16 +104,8 @@ def Menu():
                     rightMouse = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-
-        # exit button
-        DrawClass.Menu.lines["xButton"].colour = Colours.black
-        if DrawClass.Menu.lines["xButton"].drawing is not None and DrawClass.Menu.lines["xButton"].drawing.collidepoint(mx, my):
-            DrawClass.Menu.lines["xButton"].colour = Colours.red
-            if leftMouse:
-                click.play()
-                pygame.time.wait(160)
-                quit()
+                    quit()
+        exitButton(leftMouse, mx, my)
 
         # draw map
         DrawClass.Menu.drawMap(screen)
@@ -107,27 +127,35 @@ def Menu():
         pygame.display.update()
 
 
+def everyFrame():
+    clock.tick(fps)
+    DrawClass.Menu.drawMap(screen)
+    objSprites.draw(screen)
+    player.drawPlayer(screen)
+    player.facingLine(20, screen)
+    for obstacle in obstacles:
+        obstacle.drawObstacle(screen)
+
+
 def Play():
     # variables
-    projectile, projectile2, portal, portal2 = None, None, None, None
     canShootLeft, canShootRight, canTeleport = True, True, True
     DrawClass.drawMenu(screenW, screenH)
-    roof.setCoord(depth, depth, screenW - depth, depth)
-    wall1.setCoord(depth, depth, depth, screenH - depth)
-    ground.setCoord(depth, screenH - depth, screenW - depth, screenH - depth)
-    wall2.setCoord(screenW - depth, depth, screenW - depth, screenH - depth)
-    allSprites.update()
+    objSprites.update()
+    intersection = []
     while True:
         # statements every frame
-        DrawClass.Menu.drawMap(screen)
         leftMouse, rightMouse = False, False
-        clock.tick(fps)
         mx, my = pygame.mouse.get_pos()
-        for obstacle in obstacles:
-            obstacle.drawObstacle(screen)
-        allSprites.draw(screen)
-        player.drawPlayer(screen)
-        player.facingLine(20, screen)
+        opposite = posVec.j - my
+        adjacent = mx - posVec.i
+
+        # find facing angle
+        angle = player.findAngle(mx, my, opposite, adjacent)
+        xChange = cos(angle)
+        yChange = -sin(angle)
+
+        everyFrame()
 
         AStarClass.Path.findPath((posVec.i, posVec.j))
         for node in AStarClass.nodesMap:
@@ -144,26 +172,12 @@ def Play():
                 if event.key == pygame.K_ESCAPE:
                     quit()
 
-        # exit button
-        DrawClass.Menu.lines["xButton"].colour = Colours.black
-        if DrawClass.Menu.lines["xButton"].drawing is not None and DrawClass.Menu.lines["xButton"].drawing.collidepoint(mx, my):
-            DrawClass.Menu.lines["xButton"].colour = Colours.red
-            if leftMouse:
-                click.play()
-                pygame.time.wait(160)
-                quit()
-
-        opposite = posVec.j - my
-        adjacent = mx - posVec.i
-
-        # find facing angle
-        angle = player.findAngle(mx, my, opposite, adjacent)
-        xChange = cos(angle)
-        yChange = -sin(angle)
+        exitButton(leftMouse, mx, my)
 
         # define walls and pointer
         L1.setCoord(posVec.i + xChange, posVec.j + yChange, xChange * mL + posVec.i, yChange * mL + posVec.j)
-        intersection = (L1.intersection(roof, screen), L1.intersection(wall1, screen), L1.intersection(wall2, screen), L1.intersection(ground, screen))
+        for obj1 in collisionObj:
+            intersection.append(L1.intersection(obj1, screen))
 
         # check if player moves left or right
         keys = pygame.key.get_pressed()
@@ -206,7 +220,7 @@ def Play():
             terminalVel.reverse("i")
 
         # check for collisions
-        player.objectCollide(allSprites, vel)
+        player.objectCollide(objSprites, vel)
         if posVec.i <= depth:
             posVec.i = depth
             vel.i = 0
@@ -215,55 +229,51 @@ def Play():
             vel.i = 0
         posVec.add(vel, "i")
         posVec.add(vel, "j")
-
-        playerSprites.update(posVec.i, posVec.j)
+        player.setPos(posVec.i, posVec.j)
 
         # if mouse button is pressed a projectile is created
         if leftMouse and canShootLeft:
             for item in intersection:
                 if item is not None:
-                    projectile = Projectile(angle, posVec.i + player.xChange, posVec.j + player.yChange, Colours.blue, item[0], item[1])
+                    projectile.setAttributes(angle, posVec.i + player.xChange, posVec.j + player.yChange, Colours.blue, item[0], item[1])
+                    canShootLeft = False
 
         if rightMouse and canShootRight:
             for item2 in intersection:
                 if item2 is not None:
-                    projectile2 = Projectile(angle, posVec.i + player.xChange, posVec.j + player.yChange, Colours.orange, item2[0], item2[1])
+                    projectile2.setAttributes(angle, posVec.i + player.xChange, posVec.j + player.yChange, Colours.orange, item2[0], item2[1])
+                    canShootRight = False
 
-        # if a projectile has been created draw it to the screen
-        if projectile is not None:
-            projectile.drawProjectile(speed, screen)
-            canShootLeft = False
-            # if portal makes collision draw a portal
-            if projectile.collision(depth, screenW, screenH):
-                portal = PortalSprite(projectile.getAttr("xi"), projectile.getAttr("yi"), Colours.blue)
-                portalSprites.add(portal)
-                projectile = None
-                canShootLeft = True
-
-        if projectile2 is not None:
-            projectile2.drawProjectile(speed, screen)
-            canShootRight = False
-            # if portal makes collision draw a portal
-            if projectile2.collision(depth, screenW, screenH):
-                portal2 = PortalSprite(projectile2.getAttr("xi"), projectile2.getAttr("yi"), Colours.orange)
-                portalSprites.add(portal2)
-                projectile2 = None
-                canShootRight = True
+        # draw projectile to the screen
+        projectile.drawProjectile(speed, screen)
+        projectile2.drawProjectile(speed, screen)
         portalSprites.update(screen)
+        projectile.update()
+        projectile2.update()
+
+        # if portal makes collision draw a portal
+        if projectile.collision(objSprites):
+            portal.setPos(projectile.getAttr("xi"), projectile.getAttr("yi"))
+            canShootLeft = True
+
+        # if portal makes collision draw a portal
+        if projectile2.collision(objSprites):
+            portal2.setPos(projectile2.getAttr("xi"), projectile2.getAttr("yi"))
+            canShootRight = True
 
         # if player can teleport then check for collisions and teleport
-        if canTeleport and portal and portal2:
+        if canTeleport:
             portalCollide = player.portalCollide(portalSprites)
             if portalCollide == portal:
-                playerSprites.update(portal2.portalX, portal2.portalY)
+                posVec.setVec(portal2.portalX, portal2.portalY)
                 canTeleport = False
-            #
-            # elif portalCollide == portal2:
-            #     playerSprites.update(portal.portalX, portal.portalY)
-            #     canTeleport = False
+
+            elif portalCollide == portal2:
+                posVec.setVec(portal.portalX, portal.portalY)
+                canTeleport = False
         if not player.portalCollide(portalSprites):
             canTeleport = True
-        print(player.x, player.y)
+        player.update()
 
         pygame.display.update()
 

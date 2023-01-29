@@ -4,12 +4,11 @@ from math import pi
 
 
 class PortalSprite(pygame.sprite.Sprite):
-    def __init__(self, portalX, portalY, colour):
+    def __init__(self, colour):
         super().__init__()
-        self.angle = None
         self.orientation = None
-        self.portalX = portalX
-        self.portalY = portalY
+        self.portalX = -1000
+        self.portalY = -1000
         self.colour = colour
         self.width = 32
         self.height = 32
@@ -17,11 +16,19 @@ class PortalSprite(pygame.sprite.Sprite):
         self.image.fill(Colours.white)
         self.rect = self.image.get_rect()
 
+    def setPos(self, newX, newY):
+        self.portalX = newX
+        self.portalY = newY
+
     def update(self, screen):
+        if not self.portalX and not self.portalY:
+            return
         self.rect.center = (self.portalX, self.portalY)
         self.drawPortal(screen)
 
     # draws the portal with a specific colour to the screen where the projectile hits
     def drawPortal(self, screen):
+        if not self.portalX and not self.portalY:
+            return
         pygame.draw.rect(screen, self.colour, self.rect)
         pygame.draw.circle(screen, self.colour, [self.portalX, self.portalY], 16, 3)
