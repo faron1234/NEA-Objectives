@@ -7,13 +7,12 @@ class PortalSprite(pygame.sprite.Sprite):
     def __init__(self, colour):
         super().__init__()
         self.orientation = None
-        self.portalX = -1000
-        self.portalY = -1000
+        self.portalX = None
+        self.portalY = None
         self.colour = colour
         self.width = 32
         self.height = 32
         self.image = pygame.Surface([self.width, self.height])
-        self.image.fill(Colours.white)
         self.rect = self.image.get_rect()
 
     def setPos(self, newX, newY):
@@ -30,5 +29,4 @@ class PortalSprite(pygame.sprite.Sprite):
     def drawPortal(self, screen):
         if not self.portalX and not self.portalY:
             return
-        pygame.draw.rect(screen, self.colour, self.rect)
         pygame.draw.circle(screen, self.colour, [self.portalX, self.portalY], 16, 3)

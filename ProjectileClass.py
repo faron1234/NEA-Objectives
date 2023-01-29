@@ -13,7 +13,6 @@ class ProjectileSprite(pygame.sprite.Sprite):
         self.xi = None
         self.yi = None
         self.image = pygame.Surface([5, 5])
-        self.image.fill(Colours.white)
         self.rect = self.image.get_rect()
 
     # returns a specific attribute of the projectile

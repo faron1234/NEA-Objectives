@@ -51,6 +51,6 @@ class Vector:
 gravity = Vector(0, 1)
 vel = Vector(0, 0)
 posVec = Vector(100, 100)
-acceleration = Vector(0.25, 0)
+acceleration = Vector(0.5, 0)
 deceleration = Vector(0.9, 0)
-terminalVel = Vector(5, 10)
+terminalVel = Vector(6, 10)
