@@ -33,13 +33,13 @@ class Node:
     # draws nodes to the screen and changes their colour to red
     # draws lines between each node and red lines between the nodes in the path
     def drawNode(self, screen, font):
-        pygame.draw.circle(screen, self.colour, [self.X, self.Y], 10)
+        # pygame.draw.circle(screen, self.colour, [self.X, self.Y], 10)
         for adjNode in self.adjNodes:
             if Path.shortestPath is not None and adjNode in Path.shortestPath and self in Path.shortestPath:
-                pygame.draw.line(screen, Colours.red, [self.X, self.Y], [adjNode.X, adjNode.Y], 2)
+                pygame.draw.aaline(screen, Colours.red, [self.X, self.Y], [adjNode.X, adjNode.Y], 2)
                 continue
 
-            pygame.draw.line(screen, Colours.black, [self.X, self.Y], [adjNode.X, adjNode.Y], 2)
+            pygame.draw.aaline(screen, Colours.black, [self.X, self.Y], [adjNode.X, adjNode.Y], 2)
 
         # writes the name for each node on top
         nameText = Text(font, self.name, self.X, self.Y)

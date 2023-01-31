@@ -14,19 +14,19 @@ from math import *
 
 pygame.init()
 
-objSprites = pygame.sprite.Group()
+objectSprites = pygame.sprite.Group()
 playerSprites = pygame.sprite.Group()
 portalSprites = pygame.sprite.Group()
 projectileSprites = pygame.sprite.Group()
 
-player = PlayerSprite("SpriteImages/Stationary.xcf", posVec.i, posVec.j)
+player = PlayerSprite(posVec.i, posVec.j)
 playerSprites.add(player)
 
-ob1 = ObstacleSprite(500, 450, 300, 300)
-ob2 = ObstacleSprite(900, 750, 100, 300)
-ob3 = ObstacleSprite(1000, 1000, 100, 100)
-obstacles = [ob1, ob2, ob3]
-objSprites.add(ob1, ob2, ob3)
+ob1 = ObstacleSprite("rect", (500, 450), (300, 301))
+ob2 = ObstacleSprite("rect", (900, 750), (100, 300))
+ob3 = ObstacleSprite("rect", (1000, 1000), (100, 100))
+ob4 = ObstacleSprite("polygon", (500, 500), ((200, 100), (400, 100), (400, 250), (300, 250), (300, 200), (200, 200), (200, 100)))
+obstacles = [ob1, ob2, ob3, ob4]
 
 portal = PortalSprite(Colours.blue)
 portalSprites.add(portal)
@@ -53,10 +53,16 @@ wall2 = Line(screenW - depth, depth, screenW - depth, screenH - depth)
 
 collisionObj = [roof, wall1, ground, wall2]
 for obj in obstacles:
-    collisionObj.append(Line(obj.obstacleX, obj.obstacleY, obj.obstacleX + obj.width, obj.obstacleY))
-    collisionObj.append(Line(obj.obstacleX, obj.obstacleY, obj.obstacleX, obj.obstacleY + obj.height))
-    collisionObj.append(Line(obj.obstacleX, obj.obstacleY + obj.height, obj.obstacleX + obj.width, obj.obstacleY + obj.height))
-    collisionObj.append(Line(obj.obstacleX + obj.width, obj.obstacleY, obj.obstacleX + obj.width, obj.obstacleY + obj.height))
+    if obj.type == "polygon":
+        corners = obj.corners
+        for index in range(len(corners)-1):
+            collisionObj.append(Line(corners[index][0], corners[index][1], corners[index+1][0], corners[index+1][1]))
+    if obj.type == "rect":
+        collisionObj.append(Line(obj.x, obj.y, obj.x + obj.width, obj.y))
+        collisionObj.append(Line(obj.x, obj.y, obj.x, obj.y + obj.height))
+        collisionObj.append(Line(obj.x, obj.y + obj.height, obj.x + obj.width, obj.y + obj.height))
+        collisionObj.append(Line(obj.x + obj.width, obj.y, obj.x + obj.width, obj.y + obj.height))
+    objectSprites.add(obj)
 
 menuFont = pygame.font.Font("static/MainFont.otf", int(screenW / 12.5))
 nodeFont = pygame.font.Font("static/MainFont.otf", int(screenW / 32.5))
@@ -129,8 +135,9 @@ def Menu():
 
 def everyFrame():
     clock.tick(fps)
+    player.movingRight, player.movingLeft = False, False
     DrawClass.Menu.drawMap(screen)
-    objSprites.draw(screen)
+    objectSprites.draw(screen)
     player.drawPlayer(screen)
     player.facingLine(20, screen)
     for obstacle in obstacles:
@@ -154,7 +161,7 @@ def Play():
     # variables
     canShootLeft, canShootRight, canTeleport = True, True, True
     DrawClass.drawMenu(screenW, screenH)
-    objSprites.update()
+    objectSprites.update()
     while True:
         # statements every frame
         leftMouse, rightMouse = False, False
@@ -190,6 +197,7 @@ def Play():
         # define walls and pointer
         L1.setCoord(posVec.i + xChange, posVec.j + yChange, xChange * mL + posVec.i, yChange * mL + posVec.j)
         for obj1 in collisionObj:
+            pygame.draw.line(screen, Colours.black, (obj1.x1, obj1.y1), (obj1.x2, obj1.y2), 3)
             intersectionPoints.append(L1.intersection(obj1, screen))
 
         # check if player moves left or right
@@ -199,6 +207,12 @@ def Play():
 
         if keys[pygame.K_a]:
             vel.subtract(acceleration, "i")
+
+        if vel.i > 0.3:
+            player.movingRight = True
+
+        if vel.i < -0.3:
+            player.movingLeft = True
 
         # add gravity vector to velocity
         vel.add(gravity, "j")
@@ -233,7 +247,7 @@ def Play():
             terminalVel.reverse("i")
 
         # check for collisions
-        player.objectCollide(objSprites, vel)
+        player.objectCollide(objectSprites, vel)
         if posVec.i <= depth:
             posVec.i = depth
             vel.i = 0
@@ -265,23 +279,24 @@ def Play():
         projectile2.update()
 
         # if portal makes collision draw a portal
-        if projectile.collision(objSprites):
+        if projectile.collision(objectSprites):
             portal.setPos(projectile.getAttr("xi"), projectile.getAttr("yi"))
             canShootLeft = True
 
         # if portal makes collision draw a portal
-        if projectile2.collision(objSprites):
+        if projectile2.collision(objectSprites):
             portal2.setPos(projectile2.getAttr("xi"), projectile2.getAttr("yi"))
             canShootRight = True
 
         # if player can teleport then check for collisions and teleport
         if canTeleport:
             portalCollide = player.portalCollide(portalSprites)
-            if portalCollide == portal and portal.portalX is not None:
+            if portalCollide == portal and portal2.portalX is not None:
                 posVec.setVec(portal2.portalX, portal2.portalY)
+                vel.reverse("j")
                 canTeleport = False
 
-            elif portalCollide == portal2 and portal2.portalX is not None:
+            elif portalCollide == portal2 and portal.portalX is not None:
                 posVec.setVec(portal.portalX, portal.portalY)
                 canTeleport = False
         if not player.portalCollide(portalSprites):
