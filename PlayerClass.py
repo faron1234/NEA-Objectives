@@ -1,7 +1,10 @@
 from math import sin, cos, atan, pi, ceil, floor
 from static import Colours
 import pygame
-from itertools import repeat
+from VectorClass import posVec
+
+
+# def addImages(image):
 
 
 class PlayerSprite(pygame.sprite.Sprite):
@@ -9,20 +12,14 @@ class PlayerSprite(pygame.sprite.Sprite):
         super().__init__()
         self.SpritesRight = []
         self.SpritesLeft = []
-        self.SpritesIdle = []
         self.index = 0
         self.counter = 0
         for i in range(0, 5):
             imageRight = pygame.image.load(f'SpriteImages/SpritesRunRight/adventurer-run-{i}.png')
-            imageRight = pygame.transform.scale(imageRight, (imageRight.get_width()*2, imageRight.get_height()*2))
+            imageRight = pygame.transform.scale(imageRight, (imageRight.get_width() * 2.5, imageRight.get_height() * 2.5))
             imageLeft = pygame.transform.flip(imageRight, True, False)
             self.SpritesRight.append(imageRight)
             self.SpritesLeft.append(imageLeft)
-        for i in range(0, 2):
-            imageIdle = pygame.image.load(f'SpriteImages/SpritesIdle/adventurer-idle-0{i}.png')
-            imageIdle = pygame.transform.scale(imageIdle, (imageIdle.get_width() * 2, imageIdle.get_height() * 2))
-            self.SpritesIdle.append(imageIdle)
-            self.SpritesIdle.append(imageIdle)
         self.image = self.SpritesRight[self.index]
         self.x = x
         self.y = y
@@ -47,22 +44,24 @@ class PlayerSprite(pygame.sprite.Sprite):
 
         # animation
         self.counter += 1
+        if self.counter <= animationCooldown:
+            return
 
-        if self.counter > animationCooldown:
-            self.counter = 0
-            self.index += 1
-            if self.movingRight:
-                if self.index >= len(self.SpritesRight):
-                    self.index = 0
-                self.image = self.SpritesRight[self.index]
-            if self.movingLeft:
-                if self.index >= len(self.SpritesLeft):
-                    self.index = 0
-                self.image = self.SpritesLeft[self.index]
-            if not self.movingRight and not self.movingLeft:
-                if self.index >= len(self.SpritesIdle):
-                    self.index = 0
-                self.image = self.SpritesIdle[self.index]
+        self.counter = 0
+        self.index += 1
+
+        if not self.movingRight and not self.movingLeft:
+            self.index = 0
+            return
+
+        if self.movingRight:
+            if self.index >= len(self.SpritesRight):
+                self.index = 0
+            self.image = self.SpritesRight[self.index]
+        if self.movingLeft:
+            if self.index >= len(self.SpritesLeft):
+                self.index = 0
+            self.image = self.SpritesLeft[self.index]
 
     def setPos(self, newX, newY):
         self.x, self.y = newX, newY
@@ -76,7 +75,6 @@ class PlayerSprite(pygame.sprite.Sprite):
             if sprite.type == "polygon":
                 if pygame.sprite.collide_mask(sprite, self):
                     print("collision")
-
             if vel.i > 0:
                 if sprite.rect.colliderect(self.rect.x + ceil(vel.i), self.rect.y, self.width, self.height):
                     vel.i = 0
@@ -128,3 +126,8 @@ class PlayerSprite(pygame.sprite.Sprite):
         elif my == self.y and mx < self.x:
             self.facingAngle = pi
         return self.facingAngle
+
+
+playerSprites = pygame.sprite.Group()
+player = PlayerSprite(posVec.i, posVec.j)
+playerSprites.add(player)

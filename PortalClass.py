@@ -30,3 +30,10 @@ class PortalSprite(pygame.sprite.Sprite):
         if not self.portalX and not self.portalY:
             return
         pygame.draw.circle(screen, self.colour, [self.portalX, self.portalY], 16, 3)
+
+
+portalSprites = pygame.sprite.Group()
+portal = PortalSprite(Colours.blue)
+portal2 = PortalSprite(Colours.orange)
+portalSprites.add(portal)
+portalSprites.add(portal2)

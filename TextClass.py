@@ -1,14 +1,16 @@
 class Text:
-    def __init__(self, font, name=None, x=None, y=None):
-        self.font = font
+    def __init__(self, font, colour, name, x, y):
         self.name = name
+        self.text = font.render(self.name, True, colour)
+        self.colour = colour
         self.x = x
         self.y = y
+        self.width = self.text.get_width()
+        self.height = self.text.get_height()
 
     # renders the text then draws text to the screen
-    def write(self, screen, col):
-        text = self.font.render(self.name, True, col)
-        screen.blit(text, (self.x, self.y))
+    def write(self, screen):
+        screen.blit(self.text, (self.x, self.y))
 
     # updates what the text says
     def updateText(self, text):

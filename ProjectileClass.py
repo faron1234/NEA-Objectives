@@ -55,3 +55,8 @@ class ProjectileSprite(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, spriteGroup, False):
             self.x, self.y = None, None
             return True
+
+
+projectileSprites = pygame.sprite.Group()
+projectile = ProjectileSprite()
+projectile2 = ProjectileSprite()

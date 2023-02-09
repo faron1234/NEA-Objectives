@@ -2,7 +2,7 @@ from static import Colours
 import pygame
 
 
-class MapClass:
+class Map:
     def __init__(self):
         self.lines = {}
 
@@ -27,9 +27,12 @@ class Draw:
         self.thickness = thickness
         self.drawing = None
         self.name = name
+        self.doDraw = True
 
     # create drawing for types of object
     def draw(self, screen):
+        if not self.doDraw:
+            return
         if self.objType == "line":
             self.drawing = pygame.draw.line(screen, self.colour, [self.coord[0][0], self.coord[0][1]],
                                             [self.coord[1][0], self.coord[1][1]],
@@ -39,9 +42,9 @@ class Draw:
                                             [self.coord[0][0], self.coord[0][1], self.coord[1][0], self.coord[1][1]], self.thickness)
 
 
-def drawMenu(screenW, screenH):
+def createBackground(screenW, screenH):
     # add all drawings for background screen
-    Menu.addObj(
+    backgroundDrawing.addObj(
         # fill in background colours
         Draw(Colours.white, "rect", [[30, 30], [screenW - 30 * 2, screenH - 30 * 2]], 40),
         Draw(Colours.darkGrey, "rect", [[0, 0], [screenW, screenH]], 30),
@@ -70,10 +73,13 @@ def drawMenu(screenW, screenH):
         # x button
         Draw(Colours.red, "line", [[screenW, 0], [screenW - 20, 20]], 2),
         Draw(Colours.red, "line", [[screenW - 20, 0], [screenW, 20]], 2),
+        Draw(Colours.black, "rect", [[screenW - 25, 0], [25, 25]], 2, "xButton"),
 
-        # x button area
-        Draw(Colours.black, "rect", [[screenW - 25, 0], [25, 25]], 2, "xButton")
+        # start button
+        Draw(Colours.black, "rect", ([100, screenH/2], [400, 100]), 2, "startButton"),
+        # scores button
+        Draw(Colours.black, "rect", ([screenW-500, screenH / 2], [400, 100]), 2, "scoresButton"),
     )
 
 
-Menu = MapClass()
+backgroundDrawing = Map()

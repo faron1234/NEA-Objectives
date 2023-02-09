@@ -35,15 +35,14 @@ class Node:
     def drawNode(self, screen, font):
         # pygame.draw.circle(screen, self.colour, [self.X, self.Y], 10)
         for adjNode in self.adjNodes:
-            if Path.shortestPath is not None and adjNode in Path.shortestPath and self in Path.shortestPath:
+            if Path.shortestPath and adjNode in Path.shortestPath and self in Path.shortestPath:
                 pygame.draw.aaline(screen, Colours.red, [self.X, self.Y], [adjNode.X, adjNode.Y], 2)
                 continue
-
             pygame.draw.aaline(screen, Colours.black, [self.X, self.Y], [adjNode.X, adjNode.Y], 2)
 
         # writes the name for each node on top
-        nameText = Text(font, self.name, self.X, self.Y)
-        nameText.write(screen, Colours.red)
+        nameText = Text(font, Colours.red, self.name, self.X, self.Y)
+        nameText.write(screen)
 
     # sets the coordinates of a node to a new coordinate
     def setCoord(self, newCoord):
@@ -110,10 +109,11 @@ class AStar:
                     shortest = node
 
             for adjNode in shortest.adjNodes:
-                if adjNode in self.graph and shortest.adjNodes[adjNode] + shortest.gCost + adjNode.hCost < adjNode.fCost:
-                    adjNode.gCost = shortest.adjNodes[adjNode] + shortest.gCost
-                    adjNode.setFCost()
-                    self.previousNode.update({adjNode: shortest})
+                if adjNode not in self.graph or shortest.adjNodes[adjNode] + shortest.gCost + adjNode.hCost > adjNode.fCost:
+                    continue
+                adjNode.gCost = shortest.adjNodes[adjNode] + shortest.gCost
+                adjNode.setFCost()
+                self.previousNode.update({adjNode: shortest})
 
             self.graph.remove(shortest)
         node = self.finalNode
