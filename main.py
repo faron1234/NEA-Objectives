@@ -92,19 +92,19 @@ def teleport(canTeleport):
         return False
 
 
-def shotCheck(mouseButton, canShoot, intersectionPoints, angle, projectileName):
+def shotCheck(mouseButton, canShoot, intersectionPoints, angle, projectileName, colour):
     if mouseButton and canShoot:
         shortestCollision = getShortestCollision(intersectionPoints)
         if shortestCollision:
-            projectileName.setAttributes(angle, posVec.i + player.xChange, posVec.j + player.yChange, Colours.blue, shortestCollision[0], shortestCollision[1])
+            projectileName.setAttributes(angle, posVec.i + player.xChange, posVec.j + player.yChange, colour, shortestCollision[0], shortestCollision[1])
         canShoot = False
     return canShoot
 
 
 def createProjectile(leftMouse, rightMouse, canShootLeft, canShootRight, intersectionPoints, angle):
     # if mouse button is pressed a projectile is created
-    canShootLeft = shotCheck(leftMouse, canShootLeft, intersectionPoints, angle, projectile)
-    canShootRight = shotCheck(rightMouse, canShootRight, intersectionPoints, angle, projectile2)
+    canShootLeft = shotCheck(leftMouse, canShootLeft, intersectionPoints, angle, projectile, Colours.blue)
+    canShootRight = shotCheck(rightMouse, canShootRight, intersectionPoints, angle, projectile2, Colours.orange)
     return canShootLeft, canShootRight
 
 
@@ -179,7 +179,7 @@ def Play():
             vel.j = -15
             player.canJump = False
         # if player presses w or space and can jump they jump
-        if not keys[pygame.K_w] and not keys[pygame.K_SPACE] and collide:
+        if collide:
             player.canJump = True
 
         # stop acceleration once terminal velocity is reached
@@ -201,14 +201,18 @@ def Play():
         player.update()
 
         # if portal makes collision draw a portal
-        if projectile.collision(objectSprites):
-            portal.setPos(projectile.getAttr('xi'), projectile.getAttr('yi'))
+        if projectile.collision(portalSprites):
             canShootLeft = True
+        if projectile.collision(objectSprites):
+            canShootLeft = True
+            portal.setPos(projectile.getAttr('xi'), projectile.getAttr('yi'))
 
         # if portal makes collision draw a portal
-        if projectile2.collision(objectSprites):
-            portal2.setPos(projectile2.getAttr('xi'), projectile2.getAttr('yi'))
+        if projectile2.collision(portalSprites):
             canShootRight = True
+        if projectile2.collision(objectSprites):
+            canShootRight = True
+            portal2.setPos(projectile2.getAttr('xi'), projectile2.getAttr('yi'))
 
         # if player can teleport then check for collisions and teleport
         canTeleport = teleport(canTeleport)
