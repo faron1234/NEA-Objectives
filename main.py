@@ -169,21 +169,17 @@ def Play():
         if not keys[pygame.K_d] and not keys[pygame.K_a]:
             vel.scale(deceleration, 'i')
 
-        # if player is in the air canFall = True
-        if posVec.j < screenH - characterHeight - 50:
-            player.canFall = True
-        # if player not in air canJump = True
-        else:
-            posVec.j = screenH - characterHeight - 50
-            vel.j = 0
-            player.canJump = True
+        # check for collisions
+        collide = player.objectCollide(objectSprites, vel)
+        posVec.add(vel, 'i')
+        posVec.add(vel, 'j')
+        player.setPos(posVec.i, posVec.j)
 
+        if player.canJump and keys[pygame.K_w] or keys[pygame.K_SPACE]:
+            vel.j = -15
+            player.canJump = False
         # if player presses w or space and can jump they jump
-        if player.canJump:
-            if keys[pygame.K_w] or keys[pygame.K_SPACE]:
-                vel.j = -15
-                player.canJump = False
-        if not keys[pygame.K_w] and not keys[pygame.K_SPACE]:
+        if not keys[pygame.K_w] and not keys[pygame.K_SPACE] and collide:
             player.canJump = True
 
         # stop acceleration once terminal velocity is reached
@@ -193,12 +189,6 @@ def Play():
             terminalVel.reverse('i')
             vel.limit(terminalVel, 'i')
             terminalVel.reverse('i')
-
-        # check for collisions
-        player.objectCollide(objectSprites, vel)
-        posVec.add(vel, 'i')
-        posVec.add(vel, 'j')
-        player.setPos(posVec.i, posVec.j)
 
         canShootLeft, canShootRight = createProjectile(leftMouse, rightMouse, canShootLeft, canShootRight, intersectionPoints, angle)
 
