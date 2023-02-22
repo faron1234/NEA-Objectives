@@ -113,6 +113,7 @@ def Play():
     canShootLeft, canShootRight, canTeleport = True, True, True
     backgroundDrawing.lines['startButton'].doDraw = False
     backgroundDrawing.lines['scoresButton'].doDraw = False
+    Path, nodesMap = AStarClass.createNodes(screenW, screenH)
     while True:
         # set fps
         clock.tick(fps)
@@ -139,9 +140,9 @@ def Play():
 
         button(leftMouse, mx, my, "xButton", Colours.red, quit)
 
-        AStarClass.Path.findPath((posVec.i, posVec.j))
-        for node in AStarClass.nodesMap:
-            node.drawNode(screen, nodeFont)
+        Path.findPath(player)
+        for node in nodesMap:
+            node.drawNode(screen, nodeFont, Path)
 
         # define walls and pointer
         L1.setCoord(posVec.i + xChange, posVec.j + yChange, xChange * mL + posVec.i, yChange * mL + posVec.j)

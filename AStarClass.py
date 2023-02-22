@@ -5,7 +5,7 @@ from TextClass import Text
 
 
 class Node:
-    def __init__(self, name, X, Y, colour=Colours.black, gCost=inf, hCost=inf, fCost=inf, closestNode=None):
+    def __init__(self, X, Y, name=None, colour=Colours.black, gCost=inf, hCost=inf, fCost=inf, closestNode=None):
         self.name = name
         self.fCost = fCost
         self.gCost = gCost
@@ -32,7 +32,7 @@ class Node:
 
     # draws nodes to the screen and changes their colour to red
     # draws lines between each node and red lines between the nodes in the path
-    def drawNode(self, screen, font):
+    def drawNode(self, screen, font, Path):
         # pygame.draw.circle(screen, self.colour, [self.X, self.Y], 10)
         for adjNode in self.adjNodes:
             if Path.shortestPath and adjNode in Path.shortestPath and self in Path.shortestPath:
@@ -66,11 +66,29 @@ class Node:
     def findAdj(self, nodes):
         self.adjNodes = {}
         for item in nodes:
-            if self.closestNode is None or self.closestNode is A:
+            if self.closestNode is None or self.closestNode is nodes[0]:
                 self.closestNode = item
             if self.findDist(item) < self.findDist(self.closestNode):
                 self.closestNode = item
         self.addAdj((self.closestNode,))
+        print(self.adjNodes)
+
+    @classmethod
+    def dynamicNodes(cls, screenW, screenH):
+        # nodesMap = []
+        # previousNode = None
+        # for xPixel in range(screenW):
+        #     if xPixel % 500 != 0:
+        #         continue
+        #     for yPixel in range(screenH):
+        #         if yPixel % 500 != 0:
+        #             continue
+        #         newNode = Node(xPixel, yPixel)
+        #         nodesMap.append(newNode)
+        #         if previousNode:
+        #             newNode.addAdj((previousNode,))
+        #         previousNode = newNode
+        return nodesMap
 
 
 class AStar:
@@ -78,44 +96,46 @@ class AStar:
         self.previousNode = None
         self.shortestPath = None
         self.graph = None
+        self.shortest = None
         self.firstNode = firstNode
         self.finalNode = finalNode
         self.iteration = iteration
         self.nodes = nodes
 
+    def findClosestNode(self):
+        self.shortest = None
+        for node in self.graph:
+            if self.shortest is None:
+                self.shortest = node
+            elif node.fCost < self.shortest.fCost:
+                self.shortest = node
+
     # finds the path between two given nodes
-    def findPath(self, coord):
+    def findPath(self, player):
         self.shortestPath = []
         self.previousNode = {}
-        self.firstNode.X = coord[0]
-        self.firstNode.Y = coord[1]
+        self.firstNode.X = player.x
+        self.firstNode.Y = player.y
         self.graph = self.nodes.copy()
         for node in self.graph:
             node.reset()
-        self.firstNode.setGCost(0)
-        A.findAdj(self.graph)
-
-        for node in self.graph:
             node.setHCost(self.finalNode)
             node.setFCost()
+        self.firstNode.setGCost(0)
+        self.firstNode.findAdj(self.graph)
+        print(self.nodes, self.firstNode)
 
         while self.finalNode in self.graph:
             self.iteration += 1
-            shortest = None
-            for node in self.graph:
-                if shortest is None:
-                    shortest = node
-                elif node.fCost < shortest.fCost:
-                    shortest = node
-
-            for adjNode in shortest.adjNodes:
-                if adjNode not in self.graph or shortest.adjNodes[adjNode] + shortest.gCost + adjNode.hCost > adjNode.fCost:
+            self.findClosestNode()
+            for adjNode in self.shortest.adjNodes:
+                if adjNode not in self.graph or self.shortest.adjNodes[adjNode] + self.shortest.gCost + adjNode.hCost > adjNode.fCost:
                     continue
-                adjNode.gCost = shortest.adjNodes[adjNode] + shortest.gCost
+                adjNode.gCost = self.shortest.adjNodes[adjNode] + self.shortest.gCost
                 adjNode.setFCost()
-                self.previousNode.update({adjNode: shortest})
+                self.previousNode.update({adjNode: self.shortest})
 
-            self.graph.remove(shortest)
+            self.graph.remove(self.shortest)
         node = self.finalNode
         self.firstNode.colour = Colours.red
         while node != self.firstNode:
@@ -124,23 +144,46 @@ class AStar:
             node = self.previousNode[node]
         self.shortestPath.insert(0, self.firstNode)
 
+#
+# A = Node(50*3, 150*3, "A")
+# B = Node(150*3, 75*3, "B")
+# C = Node(150*3, 225*3, "C")
+# D = Node(250*3, 75*3, "D")
+# E = Node(250*3, 225*3, "E")
+# F = Node(350*3, 150*3, "F")
+# G = Node(340*3, 275*3, "G")
+#
+# nodesMap = [A, B, C, D, E, F, G]
+#
+# A.addAdj(nodesMap)
+# B.addAdj((C, D))
+# C.addAdj((B, E))
+# D.addAdj((E, F))
+# E.addAdj((C, D, F, G))
+# F.addAdj((D, E, G))
+# G.addAdj((F,))
+#
+# Path = AStar(nodesMap, A, G, 0)
 
-A = Node("A", 50*3, 150*3)
-B = Node("B", 150*3, 75*3)
-C = Node("C", 150*3, 225*3)
-D = Node("D", 250*3, 75*3)
-E = Node("E", 250*3, 225*3)
-F = Node("F", 350*3, 150*3)
-G = Node("G", 340*3, 275*3)
 
-nodesMap = [A, B, C, D, E, F, G]
+def createNodes(screenW, screenH):
+    # nodesMap = Node.dynamicNodes(screenW, screenH)
+    A = Node(0, 0, "A")
+    B = Node(150*3, 75*3, "B")
+    C = Node(150*3, 225*3, "C")
+    D = Node(250*3, 75*3, "D")
+    E = Node(250*3, 225*3, "E")
+    F = Node(350*3, 150*3, "F")
+    G = Node(340*3, 275*3, "G")
 
-A.addAdj(nodesMap)
-B.addAdj((C, D))
-C.addAdj((B, E))
-D.addAdj((E, F))
-E.addAdj((C, D, F, G))
-F.addAdj((D, E, G))
-G.addAdj((F,))
+    nodesMap = [A, B, C, D, E, F, G]
 
-Path = AStar(nodesMap, A, G, 0)
+    A.addAdj(nodesMap)
+    B.addAdj((C, D))
+    C.addAdj((B, E))
+    D.addAdj((E, F))
+    E.addAdj((C, D, F, G))
+    F.addAdj((D, E, G))
+    G.addAdj((F,))
+    Path = AStar(nodesMap, A, nodesMap[-1], 0)
+    return Path, nodesMap
