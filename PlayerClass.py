@@ -71,22 +71,22 @@ class PlayerSprite(pygame.sprite.Sprite):
         pygame.draw.rect(screen, self.col, self.rect, 2)
 
     def objectCollide(self, sprites, vel):
-        for sprite in sprites:
-            if sprite.type == "polygon":
-                if pygame.sprite.collide_mask(sprite, self):
-                    print("collision")
-            if vel.i > 0:
-                if sprite.rect.colliderect(self.rect.x + ceil(vel.i), self.rect.y, self.width, self.height):
-                    vel.i = 0
-            elif vel.i <= 0:
-                if sprite.rect.colliderect(self.rect.x + floor(vel.i), self.rect.y, self.width, self.height):
-                    vel.i = 0
-            if sprite.rect.colliderect(self.rect.x, self.rect.y + vel.j, self.width, self.height):
-                self.canJump = True
-                if vel.j < 0:
-                    vel.j = sprite.rect.bottom - self.rect.top
-                elif vel.j >= 0:
-                    vel.j = sprite.rect.top - self.rect.bottom
+        for spriteGroup in sprites:
+            for sprite in spriteGroup:
+                if sprite.objType == "polygon":
+                    print(sprite.rect1, sprite.rect2)
+                if vel.i > 0:
+                    if sprite.rect.colliderect(self.rect.x + ceil(vel.i), self.rect.y, self.width, self.height):
+                        vel.i = 0
+                elif vel.i <= 0:
+                    if sprite.rect.colliderect(self.rect.x + floor(vel.i), self.rect.y, self.width, self.height):
+                        vel.i = 0
+                if sprite.rect.colliderect(self.rect.x, self.rect.y + vel.j, self.width, self.height):
+                    self.canJump = True
+                    if vel.j < 0:
+                        vel.j = sprite.rect.bottom - self.rect.top
+                    elif vel.j >= 0:
+                        vel.j = sprite.rect.top - self.rect.bottom
 
     def portalCollide(self, sprites):
         for sprite in sprites:

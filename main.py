@@ -133,7 +133,6 @@ def Play():
 
         player.movingRight, player.movingLeft = False, False
         backgroundDrawing.drawMap(screen)
-        objectSprites.draw(screen)
         player.drawPlayer(screen)
         player.facingLine(20, screen)
         ObstacleSprite.drawObstacle(obstacles, screen)
@@ -147,6 +146,8 @@ def Play():
         # define walls and pointer
         L1.setCoord(posVec.i + xChange, posVec.j + yChange, xChange * mL + posVec.i, yChange * mL + posVec.j)
         for obj1 in collisionObj:
+            pygame.draw.circle(screen, Colours.red, (obj1.x1, obj1.y1), 5)
+            pygame.draw.line(screen, Colours.red, [obj1.x1, obj1.y1], [obj1.x2, obj1.y2])
             intersectionPoints.append(L1.intersection(obj1, screen))
 
         # check if player moves left or right
@@ -171,7 +172,7 @@ def Play():
             vel.scale(deceleration, 'i')
 
         # check for collisions
-        collide = player.objectCollide(objectSprites, vel)
+        collide = player.objectCollide((objectSprites, invisibleSprites), vel)
         posVec.add(vel, 'i')
         posVec.add(vel, 'j')
         player.setPos(posVec.i, posVec.j)
@@ -197,6 +198,8 @@ def Play():
         projectile.drawProjectile(speed, screen)
         projectile2.drawProjectile(speed, screen)
         portalSprites.update(screen)
+        objectSprites.update(screen)
+        invisibleSprites.update(screen)
         projectile.update()
         projectile2.update()
         player.update()

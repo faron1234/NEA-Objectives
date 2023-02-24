@@ -71,7 +71,6 @@ class Node:
             if self.findDist(item) < self.findDist(self.closestNode):
                 self.closestNode = item
         self.addAdj((self.closestNode,))
-        print(self.adjNodes)
 
     @classmethod
     def dynamicNodes(cls, screenW, screenH):
@@ -123,7 +122,6 @@ class AStar:
             node.setFCost()
         self.firstNode.setGCost(0)
         self.firstNode.findAdj(self.graph)
-        print(self.nodes, self.firstNode)
 
         while self.finalNode in self.graph:
             self.iteration += 1
