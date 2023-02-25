@@ -32,13 +32,46 @@ class ObstacleSprite(pygame.sprite.Sprite):
         obstacles.append(self)
 
     @classmethod
+    def createLines(cls, objects):
+        for obj in objects:
+            if obj.objType == "polygon":
+                continue
+            collisionObj.append(Line(obj.x, obj.y, obj.x + obj.width, obj.y))
+            collisionObj.append(Line(obj.x, obj.y, obj.x, obj.y + obj.height))
+            collisionObj.append(Line(obj.x, obj.y + obj.height, obj.x + obj.width, obj.y + obj.height))
+            collisionObj.append(Line(obj.x + obj.width, obj.y, obj.x + obj.width, obj.y + obj.height))
+
+
+    @classmethod
     def drawObstacle(cls, objects, screen):
         objectSprites.draw(screen)
         for obstacle in objects:
             if not obstacle.draw:
                 continue
             if obstacle.objType == "polygon":
+                pygame.draw.polygon(screen, Colours.darkGrey, [(obstacle.x + 30, obstacle.y + 30),
+                                                               (obstacle.x + obstacle.width - 30, obstacle.y + 30),
+                                                               (obstacle.x + obstacle.width - 30, obstacle.y + obstacle.height1 - 30),
+                                                               (obstacle.x1 + obstacle.width1 - 30, obstacle.y1 - 30),
+                                                               (obstacle.x1 + obstacle.width1 - 30, obstacle.y + obstacle.height + obstacle.height1 - 30),
+                                                               (obstacle.x1 + 30, obstacle.y + obstacle.height + obstacle.height1 - 30),
+                                                               (obstacle.x1 + 30, obstacle.y1 - 30),
+                                                               (obstacle.x + 30, obstacle.y1 - 30),
+                                                               (obstacle.x + 30, obstacle.y + 30)])
+
+                pygame.draw.polygon(screen, Colours.black, [(obstacle.x + 30, obstacle.y + 30),
+                                                            (obstacle.x + obstacle.width - 30, obstacle.y + 30),
+                                                            (obstacle.x + obstacle.width - 30, obstacle.y + obstacle.height1 - 30),
+                                                            (obstacle.x1 + obstacle.width1 - 30, obstacle.y1 - 30),
+                                                            (obstacle.x1 + obstacle.width1 - 30, obstacle.y + obstacle.height + obstacle.height1 - 30),
+                                                            (obstacle.x1 + 30, obstacle.y + obstacle.height + obstacle.height1 - 30),
+                                                            (obstacle.x1 + 30, obstacle.y1 - 30),
+                                                            (obstacle.x + 30, obstacle.y1 - 30),
+                                                            (obstacle.x + 30, obstacle.y + 30)], 3)
+
                 pygame.draw.polygon(screen, Colours.black, [(obstacle.x, obstacle.y),
+                                                            (obstacle.x1, obstacle.y),
+                                                            (obstacle.x1, obstacle.y),
                                                             (obstacle.x + obstacle.width, obstacle.y),
                                                             (obstacle.x + obstacle.width, obstacle.y + obstacle.height1),
                                                             (obstacle.x1 + obstacle.width1, obstacle.y1),
@@ -46,15 +79,33 @@ class ObstacleSprite(pygame.sprite.Sprite):
                                                             (obstacle.x1, obstacle.y + obstacle.height + obstacle.height1),
                                                             (obstacle.x1, obstacle.y1),
                                                             (obstacle.x, obstacle.y1),
-                                                            (obstacle.x, obstacle.y)], 2)
+                                                            (obstacle.x, obstacle.y)], 3)
+
+                pygame.draw.line(screen, Colours.black, [obstacle.x + 2, obstacle.y + 2], [obstacle.x + 30, obstacle.y + 30], 3)
+
+                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - 2, obstacle.y + 2], [obstacle.x + obstacle.width - 32, obstacle.y + 32],
+                                 3)
+
+                pygame.draw.line(screen, Colours.black, [obstacle.x + 2, obstacle.y + obstacle.height - 2],
+                                 [obstacle.x + 32, obstacle.y + obstacle.height - 32], 3)
+
+                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - 2, obstacle.y + obstacle.height - 2],
+                                 [obstacle.x + obstacle.width - 32, obstacle.y + obstacle.height - 32], 3)
+
+                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - obstacle.width1 - 2, obstacle.y + obstacle.height - 2],
+                                 [obstacle.x + obstacle.width - 32, obstacle.y + obstacle.height - 32], 3)
+
             if obstacle.objType == "rect":
                 pygame.draw.rect(screen, Colours.darkGrey, [obstacle.x + 30, obstacle.y + 30, obstacle.width - 60, obstacle.height - 60])
                 pygame.draw.rect(screen, Colours.black, [obstacle.x, obstacle.y, obstacle.width, obstacle.height], 3)
                 pygame.draw.rect(screen, Colours.black, [obstacle.x + 30, obstacle.y + 30, obstacle.width - 60, obstacle.height - 60], 3)
                 pygame.draw.line(screen, Colours.black, [obstacle.x + 2, obstacle.y + 2], [obstacle.x + 30, obstacle.y + 30], 3)
-                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - 2, obstacle.y + 2], [obstacle.x + obstacle.width - 32, obstacle.y + 32], 3)
-                pygame.draw.line(screen, Colours.black, [obstacle.x + 2, obstacle.y + obstacle.height - 2], [obstacle.x + 32, obstacle.y + obstacle.height - 32], 3)
-                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - 2, obstacle.y + obstacle.height - 2], [obstacle.x + obstacle.width - 32, obstacle.y + obstacle.height - 32], 3)
+                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - 2, obstacle.y + 2], [obstacle.x + obstacle.width - 32, obstacle.y + 32],
+                                 3)
+                pygame.draw.line(screen, Colours.black, [obstacle.x + 2, obstacle.y + obstacle.height - 2],
+                                 [obstacle.x + 32, obstacle.y + obstacle.height - 32], 3)
+                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - 2, obstacle.y + obstacle.height - 2],
+                                 [obstacle.x + obstacle.width - 32, obstacle.y + obstacle.height - 32], 3)
 
 
 objectSprites, invisibleSprites = pygame.sprite.Group(), pygame.sprite.Group()
@@ -65,16 +116,15 @@ def createObstacles(screenW, screenH, depth):
     ObstacleSprite((500, 450), (200, 300))
     ObstacleSprite((900, 750), (100, 300))
     ObstacleSprite((1000, 1000), (100, 100))
-    ObstacleSprite((0, 0), ((400, 200), (200, 200), (200, 200)), True, "polygon")
-    ObstacleSprite((900, 0), ((400, 200), (0, 200), (200, 200)), True, "polygon")
+    x = 2
+    ObstacleSprite((105, 125), ((150 * x, 75 * x), (75 * x, 75 * x), (75 * x, 75 * x)), True, "polygon")
+    ObstacleSprite((500, 400), ((150 * x, 75 * x), (0 * x, 75 * x), (75 * x, 75 * x)), True, "polygon")
+    ObstacleSprite((1000, 275), ((75 * x, 75 * x), (0 * x, 75 * x), (150 * x, 75 * x)), True, "polygon")
+    ObstacleSprite((1500, 375), ((150 * x, 75 * x), (75 * x, -75 * x), (75 * x, 75 * x)), True, "polygon")
+
     ObstacleSprite((0, -200), (screenW, 200 + depth), False)
     ObstacleSprite((0, 0), (depth, screenH - depth), False)
     ObstacleSprite((screenW - depth, 0), (screenW - depth, screenH - depth), False)
     ObstacleSprite((0, screenH - depth), (screenW, screenH), False)
-    for obj in obstacles:
-        if obj.objType == "polygon":
-            continue
-        collisionObj.append(Line(obj.x, obj.y, obj.x + obj.width, obj.y))
-        collisionObj.append(Line(obj.x, obj.y, obj.x, obj.y + obj.height))
-        collisionObj.append(Line(obj.x, obj.y + obj.height, obj.x + obj.width, obj.y + obj.height))
-        collisionObj.append(Line(obj.x + obj.width, obj.y, obj.x + obj.width, obj.y + obj.height))
+
+    ObstacleSprite.createLines(obstacles)

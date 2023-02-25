@@ -32,7 +32,6 @@ menuText = Text(menuFont, Colours.orange, 'Portal', 70, 35)
 menuText2 = Text(menuFont, Colours.orange, 'Game', 70, menuText.height)
 
 BackgroundNoise = mixer.Sound('static/Still Alive.mp3')
-backgroundMusic = pygame.mixer.Sound
 click = mixer.Sound('static/buttonClick.wav')
 
 
@@ -146,8 +145,6 @@ def Play():
         # define walls and pointer
         L1.setCoord(posVec.i + xChange, posVec.j + yChange, xChange * mL + posVec.i, yChange * mL + posVec.j)
         for obj1 in collisionObj:
-            pygame.draw.circle(screen, Colours.red, (obj1.x1, obj1.y1), 5)
-            pygame.draw.line(screen, Colours.red, [obj1.x1, obj1.y1], [obj1.x2, obj1.y2])
             intersectionPoints.append(L1.intersection(obj1, screen))
 
         # check if player moves left or right
@@ -158,11 +155,13 @@ def Play():
         if keys[pygame.K_a]:
             vel.subtract(acceleration, 'i')
 
-        if vel.i > 0.3:
+        if vel.i > 0.01:
             player.movingRight = True
+            player.lastMoved = "right"
 
-        if vel.i < -0.3:
+        if vel.i < -0.01:
             player.movingLeft = True
+            player.lastMoved = "left"
 
         # add gravity vector to velocity
         vel.add(gravity, 'j')
@@ -207,14 +206,14 @@ def Play():
         # if portal makes collision draw a portal
         if projectile.collision(portalSprites):
             canShootLeft = True
-        if projectile.collision(objectSprites):
+        if projectile.collision(objectSprites, invisibleSprites):
             canShootLeft = True
             portal.setPos(projectile.getAttr('xi'), projectile.getAttr('yi'))
 
         # if portal makes collision draw a portal
         if projectile2.collision(portalSprites):
             canShootRight = True
-        if projectile2.collision(objectSprites):
+        if projectile2.collision(objectSprites, invisibleSprites):
             canShootRight = True
             portal2.setPos(projectile2.getAttr('xi'), projectile2.getAttr('yi'))
 
@@ -228,7 +227,7 @@ def Menu():
     # one time statements
     backgroundY = 0
     BackgroundNoise.play()
-    BackgroundNoise.set_volume(0.01)
+    BackgroundNoise.set_volume(0.00)
     createBackground(screenW, screenH)
     while True:
         # statements every frame

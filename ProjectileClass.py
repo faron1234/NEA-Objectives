@@ -51,10 +51,11 @@ class ProjectileSprite(pygame.sprite.Sprite):
             self.x += cos(self.angle) * speedCoefficient
 
     # detects for collisions
-    def collision(self, spriteGroup):
-        if pygame.sprite.spritecollide(self, spriteGroup, False):
-            self.x, self.y = None, None
-            return True
+    def collision(self, *sprites):
+        for spriteGroup in sprites:
+            if pygame.sprite.spritecollide(self, spriteGroup, False):
+                self.x, self.y = None, None
+                return True
 
 
 projectileSprites = pygame.sprite.Group()

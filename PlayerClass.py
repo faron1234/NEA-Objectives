@@ -29,8 +29,8 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.canJump = True
         self.movingRight = False
         self.movingLeft = False
+        self.lastMoved = None
         self.col = Colours.black
-        self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.width = self.image.get_width()
         self.height = self.image.get_height()
@@ -51,7 +51,11 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.index += 1
 
         if not self.movingRight and not self.movingLeft:
-            self.index = 0
+            self.index = 2
+            if self.lastMoved == "right":
+                self.image = self.SpritesRight[self.index]
+            elif self.lastMoved == "left":
+                self.image = self.SpritesLeft[self.index]
             return
 
         if self.movingRight:
@@ -68,7 +72,6 @@ class PlayerSprite(pygame.sprite.Sprite):
 
     def drawPlayer(self, screen):
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, self.col, self.rect, 2)
 
     def objectCollide(self, sprites, vel):
         for spriteGroup in sprites:
