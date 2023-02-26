@@ -85,11 +85,11 @@ class PlayerSprite(pygame.sprite.Sprite):
                     if sprite.rect.colliderect(self.rect.x + floor(vel.i), self.rect.y, self.width, self.height):
                         vel.i = 0
                 if sprite.rect.colliderect(self.rect.x, self.rect.y + vel.j, self.width, self.height):
-                    self.canJump = True
                     if vel.j < 0:
                         vel.j = sprite.rect.bottom - self.rect.top
                     elif vel.j >= 0:
                         vel.j = sprite.rect.top - self.rect.bottom
+                        self.canJump = True
 
     def portalCollide(self, sprites):
         for sprite in sprites:

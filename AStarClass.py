@@ -2,6 +2,7 @@ from static import Colours
 from math import inf, dist
 import pygame
 from TextClass import Text
+import numpy as np
 
 
 class Node:
@@ -32,14 +33,15 @@ class Node:
 
     # draws nodes to the screen and changes their colour to red
     # draws lines between each node and red lines between the nodes in the path
-    def drawNode(self, screen, font, Path):
+    def drawNode(self, screen, font, Path, last):
         # pygame.draw.circle(screen, self.colour, [self.X, self.Y], 10)
         for adjNode in self.adjNodes:
             if Path.shortestPath and adjNode in Path.shortestPath and self in Path.shortestPath:
                 pygame.draw.aaline(screen, Colours.red, [self.x, self.y], [adjNode.x, adjNode.y], 2)
                 continue
             pygame.draw.aaline(screen, Colours.black, [self.x, self.y], [adjNode.x, adjNode.y], 2)
-
+        pygame.draw.circle(screen, Colours.red, [self.x, self.y], 5)
+        pygame.draw.circle(screen, Colours.blue, [last.x, last.y], 10)
         # writes the name for each node on top
         nameText = Text(font, Colours.red, self.name, self.x, self.y)
         nameText.write(screen)
@@ -75,32 +77,43 @@ class Node:
     @classmethod
     def dynamicNodes(cls, screenW, screenH):
         nodesMap = []
-        tempArray = []
-        row = []
+        tempArray = np.empty(((screenH // 100) + 0, (screenW // 100) + 0), dtype=object)
         previousNode = None
         playerNode = Node(0, 0, "A")
-        tempArray.append([playerNode, ])
-        for yPixel in range(screenH):
-            if yPixel % 500 != 0:
-                continue
-            for xPixel in range(screenW):
-                if xPixel % 500 != 0:
-                    continue
-                newNode = Node(xPixel, yPixel)
-                row.append(newNode)
+        tempArray[0, 0] = playerNode
+        nodesMap.append(playerNode)
+
+        for i in range((screenH // 100) + 0):
+            for j in range((screenW // 100) + 0):
+                newNode = Node((j * 100) + 0, (i * 100) + 0)
+                tempArray[i, j] = newNode
                 if previousNode:
                     newNode.addAdj(previousNode)
                     previousNode.addAdj(newNode)
+
+                    # top-left diagonal
+                    if i > 0 and j > 0 and tempArray[i - 1, j - 1]:
+                        newNode.addAdj(tempArray[i - 1, j - 1])
+                    # top-right diagonal
+                    if i > 0 and j < tempArray.shape[1] - 1 and tempArray[i - 1, j + 1]:
+                        newNode.addAdj(tempArray[i - 1, j + 1])
+                    # bottom-left diagonal
+                    if i < tempArray.shape[0] - 1 and j > 0 and tempArray[i + 1, j - 1]:
+                        newNode.addAdj(tempArray[i + 1, j - 1])
+                        # bottom-right diagonal
+                    if i < tempArray.shape[0] - 1 and j < tempArray.shape[1] - 1 and tempArray[i + 1, j + 1]:
+                        newNode.addAdj(tempArray[i + 1, j + 1])
+
                 previousNode = newNode
-            tempArray.append(row)
-            row = []
-        for index, row in enumerate(tempArray):
-            for index1, node in enumerate(row):
-                row[index1].addAdj(tempArray[index][index1])
-                nodesMap.append(node)
-        for node in nodesMap:
-            for adj in node.adjNodes:
-                print(node, adj, adj.x, adj.y)
+            previousNode = None
+
+        for i in range(tempArray.shape[0]):
+            for j in range(tempArray.shape[1]):
+                if j < tempArray.shape[1] - 1:
+                    tempArray[i, j].addAdj(tempArray[i, j + 1])
+                if i < tempArray.shape[0] - 1:
+                    tempArray[i, j].addAdj(tempArray[i + 1, j])
+                nodesMap.append(tempArray[i, j])
         return nodesMap, playerNode
 
 

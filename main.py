@@ -140,7 +140,7 @@ def Play():
 
         Path.findPath(player)
         for node in nodesMap:
-            node.drawNode(screen, nodeFont, Path)
+            node.drawNode(screen, nodeFont, Path, nodesMap[-1])
 
         # define walls and pointer
         L1.setCoord(posVec.i + xChange, posVec.j + yChange, xChange * mL + posVec.i, yChange * mL + posVec.j)
@@ -176,7 +176,7 @@ def Play():
         posVec.add(vel, 'j')
         player.setPos(posVec.i, posVec.j)
 
-        if player.canJump and keys[pygame.K_w] or keys[pygame.K_SPACE]:
+        if player.canJump and (keys[pygame.K_w] or keys[pygame.K_SPACE]):
             vel.j = -15
             player.canJump = False
         # if player presses w or space and can jump they jump
