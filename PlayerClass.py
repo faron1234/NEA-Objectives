@@ -4,9 +4,6 @@ import pygame
 from VectorClass import posVec
 
 
-# def addImages(image):
-
-
 class PlayerSprite(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -14,8 +11,8 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.SpritesLeft = []
         self.index = 0
         self.counter = 0
-        for i in range(0, 5):
-            imageRight = pygame.image.load(f'SpriteImages/SpritesRunRight/adventurer-run-{i}.png')
+        for i in range(1, 6):
+            imageRight = pygame.image.load(f'SpriteImages/SpritesRunRight/Punk_run{i}.png')
             imageRight = pygame.transform.scale(imageRight, (imageRight.get_width() * 2.5, imageRight.get_height() * 2.5))
             imageLeft = pygame.transform.flip(imageRight, True, False)
             self.SpritesRight.append(imageRight)
@@ -36,7 +33,7 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.height = self.image.get_height()
 
     def update(self):
-        animationCooldown = 10
+        animationCooldown = 5
 
         if not self.x and not self.y:
             return
@@ -73,21 +70,31 @@ class PlayerSprite(pygame.sprite.Sprite):
     def drawPlayer(self, screen):
         screen.blit(self.image, self.rect)
 
-    def objectCollide(self, sprites, vel):
+    def objectCollide(self, sprites, vel, canTeleport):
         for spriteGroup in sprites:
             for sprite in spriteGroup:
-                if sprite.objType == "polygon":
-                    print(sprite.rect1, sprite.rect2)
                 if vel.i > 0:
                     if sprite.rect.colliderect(self.rect.x + ceil(vel.i), self.rect.y, self.width, self.height):
+                        if not canTeleport:
+                            self.rect.right = sprite.rect.left
+                            continue
                         vel.i = 0
                 elif vel.i <= 0:
                     if sprite.rect.colliderect(self.rect.x + floor(vel.i), self.rect.y, self.width, self.height):
+                        if not canTeleport:
+                            self.rect.left = sprite.rect.right
+                            continue
                         vel.i = 0
                 if sprite.rect.colliderect(self.rect.x, self.rect.y + vel.j, self.width, self.height):
                     if vel.j < 0:
+                        if not canTeleport:
+                            self.rect.bottom = sprite.rect.top
+                            continue
                         vel.j = sprite.rect.bottom - self.rect.top
                     elif vel.j >= 0:
+                        if not canTeleport:
+                            self.rect.top = sprite.rect.bottom
+                            continue
                         vel.j = sprite.rect.top - self.rect.bottom
                         self.canJump = True
 

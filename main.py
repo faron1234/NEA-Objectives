@@ -23,8 +23,6 @@ screen = pygame.display.set_mode((size.current_w, size.current_h))
 screenW = size.current_w
 screenH = size.current_h
 
-createObstacles(screenW, screenH, depth)
-
 menuFont = pygame.font.Font('static/MainFont.otf', int(screenW / 6.5))
 nodeFont = pygame.font.Font('static/MainFont.otf', int(screenW / 32.5))
 
@@ -47,21 +45,6 @@ def button(leftMouse, mx, my, buttonName, colourChange, function):
         function()
 
 
-def getShortestCollision(intersections):
-    shortest = inf
-    shortestCoord = None
-    for item in intersections:
-        if not item:
-            continue
-        distance = dist((item[0], item[1]), (player.x, player.y))
-        if distance >= shortest:
-            continue
-        shortest = distance
-        shortestCoord = item[0], item[1]
-
-    return shortestCoord
-
-
 # event loop
 def eventLoop():
     leftMouse, rightMouse = False, False
@@ -81,29 +64,29 @@ def teleport(canTeleport):
         return True
     if not canTeleport:
         return False
-    if portalCollide == portal and portal2.portalX is not None:
-        posVec.setVec(portal2.portalX, portal2.portalY)
-        vel.reverse('j')
+    if portalCollide == portal and portal2.x is not None:
+        posVec.setVec(portal2.x, portal2.y)
+        vel.i = -vel.j
+        vel.j = 0
         return False
 
-    elif portalCollide == portal2 and portal.portalX is not None:
-        posVec.setVec(portal.portalX, portal.portalY)
+    elif portalCollide == portal2 and portal.x is not None:
+        posVec.setVec(portal.x, portal.y)
         return False
 
 
-def shotCheck(mouseButton, canShoot, intersectionPoints, angle, projectileName, colour):
-    if mouseButton and canShoot:
-        shortestCollision = getShortestCollision(intersectionPoints)
-        if shortestCollision:
-            projectileName.setAttributes(angle, posVec.i + player.xChange, posVec.j + player.yChange, colour, shortestCollision[0], shortestCollision[1])
-        canShoot = False
-    return canShoot
-
-
-def createProjectile(leftMouse, rightMouse, canShootLeft, canShootRight, intersectionPoints, angle):
+def createProjectile(leftMouse, rightMouse, canShootLeft, canShootRight, angle):
     # if mouse button is pressed a projectile is created
-    canShootLeft = shotCheck(leftMouse, canShootLeft, intersectionPoints, angle, projectile, Colours.blue)
-    canShootRight = shotCheck(rightMouse, canShootRight, intersectionPoints, angle, projectile2, Colours.orange)
+    if leftMouse and canShootLeft:
+        intersectionLine = L1.intersection(collisionObj, 1)
+        if intersectionLine:
+            projectile.setAttributes(angle, posVec.i + player.xChange, posVec.j + player.yChange, Colours.blue, intersectionLine)
+        canShootLeft = False
+    if rightMouse and canShootRight:
+        intersectionLine1 = L1.intersection(collisionObj, 2)
+        if intersectionLine1:
+            projectile2.setAttributes(angle, posVec.i + player.xChange, posVec.j + player.yChange, Colours.orange, intersectionLine1)
+        canShootRight = False
     return canShootLeft, canShootRight
 
 
@@ -121,8 +104,6 @@ def Play():
         leftMouse, rightMouse = eventLoop()
         mx, my = pygame.mouse.get_pos()
 
-        intersectionPoints = []
-
         # find facing angle
         opposite = posVec.j - my
         adjacent = mx - posVec.i
@@ -134,7 +115,9 @@ def Play():
         backgroundDrawing.drawMap(screen)
         player.drawPlayer(screen)
         player.facingLine(20, screen)
-        ObstacleSprite.drawObstacle(obstacles, screen)
+        ObstacleSprite.drawObstacle(gameMap.obstacles, screen)
+        for line in collisionObj:
+            pygame.draw.line(screen, Colours.red, [line.x1, line.y1], [line.x2, line.y2])
 
         button(leftMouse, mx, my, "xButton", Colours.red, quit)
 
@@ -144,8 +127,6 @@ def Play():
 
         # define walls and pointer
         L1.setCoord(posVec.i + xChange, posVec.j + yChange, xChange * mL + posVec.i, yChange * mL + posVec.j)
-        for obj1 in collisionObj:
-            intersectionPoints.append(L1.intersection(obj1, screen))
 
         # check if player moves left or right
         keys = pygame.key.get_pressed()
@@ -171,13 +152,13 @@ def Play():
             vel.scale(deceleration, 'i')
 
         # check for collisions
-        collide = player.objectCollide((objectSprites, invisibleSprites), vel)
+        collide = player.objectCollide((objectSprites, invisibleSprites), vel, canTeleport)
         posVec.add(vel, 'i')
         posVec.add(vel, 'j')
         player.setPos(posVec.i, posVec.j)
 
         if player.canJump and (keys[pygame.K_w] or keys[pygame.K_SPACE]):
-            vel.j = -15
+            vel.j = -16
             player.canJump = False
         # if player presses w or space and can jump they jump
         if collide:
@@ -191,7 +172,7 @@ def Play():
             vel.limit(terminalVel, 'i')
             terminalVel.reverse('i')
 
-        canShootLeft, canShootRight = createProjectile(leftMouse, rightMouse, canShootLeft, canShootRight, intersectionPoints, angle)
+        canShootLeft, canShootRight = createProjectile(leftMouse, rightMouse, canShootLeft, canShootRight, angle)
 
         # draw projectile to the screen
         projectile.drawProjectile(speed, screen)
@@ -206,16 +187,18 @@ def Play():
         # if portal makes collision draw a portal
         if projectile.collision(portalSprites):
             canShootLeft = True
-        if projectile.collision(objectSprites, invisibleSprites):
+        if projectile.collision(objectSprites, invisibleSprites) and projectile.intersectionLine:
             canShootLeft = True
-            portal.setPos(projectile.getAttr('xi'), projectile.getAttr('yi'))
+            portal.setPos(projectile)
+            portal.setLine(projectile.intersectionLine)
 
         # if portal makes collision draw a portal
         if projectile2.collision(portalSprites):
             canShootRight = True
-        if projectile2.collision(objectSprites, invisibleSprites):
+        if projectile2.collision(objectSprites, invisibleSprites) and projectile2.intersectionLine:
             canShootRight = True
-            portal2.setPos(projectile2.getAttr('xi'), projectile2.getAttr('yi'))
+            portal2.setPos(projectile2)
+            portal2.setLine(projectile2.intersectionLine)
 
         # if player can teleport then check for collisions and teleport
         canTeleport = teleport(canTeleport)

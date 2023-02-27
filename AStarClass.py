@@ -39,7 +39,7 @@ class Node:
             if Path.shortestPath and adjNode in Path.shortestPath and self in Path.shortestPath:
                 pygame.draw.aaline(screen, Colours.red, [self.x, self.y], [adjNode.x, adjNode.y], 2)
                 continue
-            pygame.draw.aaline(screen, Colours.black, [self.x, self.y], [adjNode.x, adjNode.y], 2)
+            # pygame.draw.aaline(screen, Colours.black, [self.x, self.y], [adjNode.x, adjNode.y], 2)
         pygame.draw.circle(screen, Colours.red, [self.x, self.y], 5)
         pygame.draw.circle(screen, Colours.blue, [last.x, last.y], 10)
         # writes the name for each node on top
@@ -76,16 +76,17 @@ class Node:
 
     @classmethod
     def dynamicNodes(cls, screenW, screenH):
+        gap = (101, 108)
         nodesMap = []
-        tempArray = np.empty(((screenH // 100) + 0, (screenW // 100) + 0), dtype=object)
+        tempArray = np.empty(((screenH // gap[1]) + 0, (screenW // gap[0]) + 0), dtype=object)
         previousNode = None
         playerNode = Node(0, 0, "A")
         tempArray[0, 0] = playerNode
         nodesMap.append(playerNode)
 
-        for i in range((screenH // 100) + 0):
-            for j in range((screenW // 100) + 0):
-                newNode = Node((j * 100) + 0, (i * 100) + 0)
+        for i in range((screenH // gap[1]) + 0):
+            for j in range((screenW // gap[0]) + 0):
+                newNode = Node((j * gap[0]) + 0, (i * gap[1]) + 0)
                 tempArray[i, j] = newNode
                 if previousNode:
                     newNode.addAdj(previousNode)

@@ -1,6 +1,5 @@
 from math import sin, cos
 import pygame
-from static import Colours
 
 
 class ProjectileSprite(pygame.sprite.Sprite):
@@ -9,9 +8,10 @@ class ProjectileSprite(pygame.sprite.Sprite):
         self.angle = None
         self.x = None
         self.y = None
-        self.col = None
+        self.colour = None
         self.xi = None
         self.yi = None
+        self.intersectionLine = None
         self.image = pygame.Surface([5, 5])
         self.rect = self.image.get_rect()
 
@@ -33,16 +33,15 @@ class ProjectileSprite(pygame.sprite.Sprite):
         if not self.x and not self.y:
             return
         self.updatePos(speedCoefficient)
-        pygame.draw.rect(screen, self.col, self.rect, 2)
-        pygame.draw.circle(screen, self.col, [self.x, self.y], 5)
+        pygame.draw.rect(screen, self.colour, self.rect, 2)
+        pygame.draw.circle(screen, self.colour, [self.x, self.y], 5)
 
-    def setAttributes(self, angle, x, y, col, xi, yi):
+    def setAttributes(self, angle, x, y, col, intersectionLine):
         self.angle = angle
         self.x = x
         self.y = y
-        self.col = col
-        self.xi = xi
-        self.yi = yi
+        self.colour = col
+        self.intersectionLine = intersectionLine
 
     # updates the position of the projectile on the y and x-axis
     def updatePos(self, speedCoefficient):

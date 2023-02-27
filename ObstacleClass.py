@@ -1,130 +1,112 @@
+import static
 from static import Colours
 import pygame
 from CollisionClass import Line
+import numpy as np
+
+
+objectSprites, invisibleSprites = pygame.sprite.Group(), pygame.sprite.Group()
+collisionObj = []
 
 
 class ObstacleSprite(pygame.sprite.Sprite):
-    def __init__(self, coord, corners, draw=True, objType="rect"):
+    def __init__(self, coord, cell, obstacleType):
         super().__init__()
-        self.x = coord[0]
-        self.y = coord[1]
-        self.draw = draw
-        self.objType = objType
-        if objType == "rect" or objType == "temp":
-            self.width = corners[0]
-            self.height = corners[1]
-            self.image = pygame.Surface((self.width, self.height))
-            if not self.draw:
-                invisibleSprites.add(self)
-            else:
-                objectSprites.add(self)
-            self.rect = self.image.fill(Colours.white)
-            self.rect = self.image.get_rect()
-            self.rect.topleft = coord
-
-        if self.objType == "polygon":
-            self.width, self.height = corners[0][0], corners[0][1]
-            self.width1, self.height1 = corners[2][0], corners[2][1]
-            self.x1, self.y1 = self.x + corners[1][0], self.y + corners[1][1]
-            ObstacleSprite((self.x, self.y), (self.width, self.height), True, "temp")
-            ObstacleSprite((self.x1, self.y1), (self.width1, self.height1), True, "temp")
-
-        obstacles.append(self)
+        self.x1 = coord[0]
+        self.y1 = coord[1]
+        self.width = gameMap.blockSize[0]
+        self.height = gameMap.blockSize[1]
+        self.x2 = self.x1 + self.width
+        self.y2 = self.y1 + self.height
+        self.cell = cell
+        self.offsets = []
+        self.adjacencyMatrix = np.zeros((3, 3), dtype=int)
+        self.adjacencyMatrix[1, 1] = 1
+        self.obstacleType = obstacleType
+        self.image = pygame.Surface((self.width, self.height))
+        objectSprites.add(self)
+        self.rect = self.image.fill(Colours.white)
+        self.rect = pygame.rect.Rect(self.x1, self.y1, self.width, self.height)
+        self.center = self.rect.center
 
     @classmethod
     def createLines(cls, objects):
-        for obj in objects:
-            if obj.objType == "polygon":
-                continue
-            collisionObj.append(Line(obj.x, obj.y, obj.x + obj.width, obj.y))
-            collisionObj.append(Line(obj.x, obj.y, obj.x, obj.y + obj.height))
-            collisionObj.append(Line(obj.x, obj.y + obj.height, obj.x + obj.width, obj.y + obj.height))
-            collisionObj.append(Line(obj.x + obj.width, obj.y, obj.x + obj.width, obj.y + obj.height))
-
+        for obstacle in objects:
+            left, right, up, down = 0, 0, 0, 0
+            if (-1, 0) in obstacle.offsets:
+                up = 30
+            if (0, -1) in obstacle.offsets:
+                left = 30
+            if (0, 1) in obstacle.offsets:
+                right = 30
+            if (1, 0) in obstacle.offsets:
+                down = 30
+            if not up:
+                collisionObj.append(Line(obstacle.x1 + 15 - left, obstacle.y1 + 15, obstacle.x2 - 15 + right, obstacle.y1 + 15, "up"))
+            if not left:
+                collisionObj.append(Line(obstacle.x1 + 15, obstacle.y1 + 15 - up, obstacle.x1 + 15, obstacle.y2 - 15 + down, "left"))
+            if not down:
+                collisionObj.append(Line(obstacle.x1 + 15 - left, obstacle.y2 - 15, obstacle.x2 - 15 + right, obstacle.y2 - 15, "down"))
+            if not right:
+                collisionObj.append(Line(obstacle.x2 - 15, obstacle.y1 + 15 - up, obstacle.x2 - 15, obstacle.y2 - 15 + down, "right"))
 
     @classmethod
     def drawObstacle(cls, objects, screen):
         objectSprites.draw(screen)
         for obstacle in objects:
-            if not obstacle.draw:
-                continue
-            if obstacle.objType == "polygon":
-                pygame.draw.polygon(screen, Colours.darkGrey, [(obstacle.x + 30, obstacle.y + 30),
-                                                               (obstacle.x + obstacle.width - 30, obstacle.y + 30),
-                                                               (obstacle.x + obstacle.width - 30, obstacle.y + obstacle.height1 - 30),
-                                                               (obstacle.x1 + obstacle.width1 - 30, obstacle.y1 - 30),
-                                                               (obstacle.x1 + obstacle.width1 - 30, obstacle.y + obstacle.height + obstacle.height1 - 30),
-                                                               (obstacle.x1 + 30, obstacle.y + obstacle.height + obstacle.height1 - 30),
-                                                               (obstacle.x1 + 30, obstacle.y1 - 30),
-                                                               (obstacle.x + 30, obstacle.y1 - 30),
-                                                               (obstacle.x + 30, obstacle.y + 30)])
+            adjacencyList = obstacle.adjacencyMatrix.tolist()
+            name = "["
+            for row in adjacencyList:
+                name += "[{} {} {}] ".format(row[0], row[1], row[2])
+            name = name[:-1] + "]"
+            image = pygame.image.load(f'ObstacleImages/{name}.xcf')
+            screen.blit(image, (obstacle.x1, obstacle.y1))
 
-                pygame.draw.polygon(screen, Colours.black, [(obstacle.x + 30, obstacle.y + 30),
-                                                            (obstacle.x + obstacle.width - 30, obstacle.y + 30),
-                                                            (obstacle.x + obstacle.width - 30, obstacle.y + obstacle.height1 - 30),
-                                                            (obstacle.x1 + obstacle.width1 - 30, obstacle.y1 - 30),
-                                                            (obstacle.x1 + obstacle.width1 - 30, obstacle.y + obstacle.height + obstacle.height1 - 30),
-                                                            (obstacle.x1 + 30, obstacle.y + obstacle.height + obstacle.height1 - 30),
-                                                            (obstacle.x1 + 30, obstacle.y1 - 30),
-                                                            (obstacle.x + 30, obstacle.y1 - 30),
-                                                            (obstacle.x + 30, obstacle.y + 30)], 3)
-
-                pygame.draw.polygon(screen, Colours.black, [(obstacle.x, obstacle.y),
-                                                            (obstacle.x1, obstacle.y),
-                                                            (obstacle.x1, obstacle.y),
-                                                            (obstacle.x + obstacle.width, obstacle.y),
-                                                            (obstacle.x + obstacle.width, obstacle.y + obstacle.height1),
-                                                            (obstacle.x1 + obstacle.width1, obstacle.y1),
-                                                            (obstacle.x1 + obstacle.width1, obstacle.y + obstacle.height + obstacle.height1),
-                                                            (obstacle.x1, obstacle.y + obstacle.height + obstacle.height1),
-                                                            (obstacle.x1, obstacle.y1),
-                                                            (obstacle.x, obstacle.y1),
-                                                            (obstacle.x, obstacle.y)], 3)
-
-                pygame.draw.line(screen, Colours.black, [obstacle.x + 2, obstacle.y + 2], [obstacle.x + 30, obstacle.y + 30], 3)
-
-                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - 2, obstacle.y + 2], [obstacle.x + obstacle.width - 32, obstacle.y + 32],
-                                 3)
-
-                pygame.draw.line(screen, Colours.black, [obstacle.x + 2, obstacle.y + obstacle.height - 2],
-                                 [obstacle.x + 32, obstacle.y + obstacle.height - 32], 3)
-
-                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - 2, obstacle.y + obstacle.height - 2],
-                                 [obstacle.x + obstacle.width - 32, obstacle.y + obstacle.height - 32], 3)
-
-                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - obstacle.width1 - 2, obstacle.y + obstacle.height - 2],
-                                 [obstacle.x + obstacle.width - 32, obstacle.y + obstacle.height - 32], 3)
-
-            if obstacle.objType == "rect":
-                pygame.draw.rect(screen, Colours.darkGrey, [obstacle.x + 30, obstacle.y + 30, obstacle.width - 60, obstacle.height - 60])
-                pygame.draw.rect(screen, Colours.black, [obstacle.x, obstacle.y, obstacle.width, obstacle.height], 3)
-                pygame.draw.rect(screen, Colours.black, [obstacle.x + 30, obstacle.y + 30, obstacle.width - 60, obstacle.height - 60], 3)
-                pygame.draw.line(screen, Colours.black, [obstacle.x + 2, obstacle.y + 2], [obstacle.x + 30, obstacle.y + 30], 3)
-                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - 2, obstacle.y + 2], [obstacle.x + obstacle.width - 32, obstacle.y + 32],
-                                 3)
-                pygame.draw.line(screen, Colours.black, [obstacle.x + 2, obstacle.y + obstacle.height - 2],
-                                 [obstacle.x + 32, obstacle.y + obstacle.height - 32], 3)
-                pygame.draw.line(screen, Colours.black, [obstacle.x + obstacle.width - 2, obstacle.y + obstacle.height - 2],
-                                 [obstacle.x + obstacle.width - 32, obstacle.y + obstacle.height - 32], 3)
+    def getNeighbors(self, gameGrid):
+        # calculate what neighbors each cell has
+        offsets = [(i, j) for i in range(-1, 2) for j in range(-1, 2) if (i, j) != (0, 0)]
+        for offset in offsets:
+            row = self.cell[0] + offset[0]
+            col = self.cell[1] + offset[1]
+            if 0 <= row < gameGrid.height and 0 <= col < gameGrid.width:
+                if gameGrid.grid[row, col] == 1:
+                    self.offsets.append(offset)
 
 
-objectSprites, invisibleSprites = pygame.sprite.Group(), pygame.sprite.Group()
-collisionObj, obstacles = [], []
+class Map:
+    def __init__(self, blockSize, width, height):
+        self.blockSize = blockSize
+        self.width = width
+        self.height = height
+        self.grid = np.zeros((self.height, self.width), dtype=int)
+        self.grid[0, :] = 1
+        self.grid[-1, :] = 1
+        self.grid[:, 0] = 1
+        self.grid[:, -1] = 1
+        self.obstacles = []
+
+    def addObstacle(self, obstacleType, *cells):
+        for cell in cells:
+            x1, y1 = cell[0] * self.blockSize[0], cell[1] * self.blockSize[1]
+            self.obstacles.append(ObstacleSprite((x1, y1), (cell[1], cell[0]), obstacleType))
+            self.grid[cell[1], cell[0]] = obstacleType
+
+    def createObstacles(self):
+        # Create obstacles based on the game map
+        for row, col in zip(*self.grid.nonzero()):
+            # Create an obstacle at the current cell
+            self.addObstacle(1, (col, row))
+        for obstacle in self.obstacles:
+            obstacle.getNeighbors(self)
+        for obstacle in self.obstacles:
+            for offset in obstacle.offsets:
+                obstacle.adjacencyMatrix[offset[0] + 1, offset[1] + 1] = 1
 
 
-def createObstacles(screenW, screenH, depth):
-    ObstacleSprite((500, 450), (200, 300))
-    ObstacleSprite((900, 750), (100, 300))
-    ObstacleSprite((1000, 1000), (100, 100))
-    x = 2
-    ObstacleSprite((105, 125), ((150 * x, 75 * x), (75 * x, 75 * x), (75 * x, 75 * x)), True, "polygon")
-    ObstacleSprite((500, 400), ((150 * x, 75 * x), (0 * x, 75 * x), (75 * x, 75 * x)), True, "polygon")
-    ObstacleSprite((1000, 275), ((75 * x, 75 * x), (0 * x, 75 * x), (150 * x, 75 * x)), True, "polygon")
-    ObstacleSprite((1500, 375), ((150 * x, 75 * x), (75 * x, -75 * x), (75 * x, 75 * x)), True, "polygon")
+gameMap = Map((101, 108), 19, 10)
+gameMap.addObstacle(1, (3, 3), (6, 1), (5, 4), (5, 5), (5, 6), (4, 5), (6, 5))
+gameMap.grid[5, 0] = 0
+gameMap.grid[8, 0] = 0
+gameMap.createObstacles()
 
-    ObstacleSprite((0, -200), (screenW, 200 + depth), False)
-    ObstacleSprite((0, 0), (depth, screenH - depth), False)
-    ObstacleSprite((screenW - depth, 0), (screenW - depth, screenH - depth), False)
-    ObstacleSprite((0, screenH - depth), (screenW, screenH), False)
-
-    ObstacleSprite.createLines(obstacles)
+ObstacleSprite.createLines(gameMap.obstacles)
