@@ -1,6 +1,5 @@
 from static import Colours
 import pygame
-from math import pi
 
 
 class PortalSprite(pygame.sprite.Sprite):

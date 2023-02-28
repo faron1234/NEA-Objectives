@@ -24,7 +24,7 @@ class Node:
     def setHCost(self, finalNode):
         self.hCost = dist((self.x, self.y), (finalNode.x, finalNode.y))
 
-    def setGCost(self, val):
+    def setGCost(self, val=0):
         self.gCost = val
 
     # finds the distance between two nodes
@@ -80,7 +80,7 @@ class Node:
         nodesMap = []
         tempArray = np.empty(((screenH // gap[1]) + 0, (screenW // gap[0]) + 0), dtype=object)
         previousNode = None
-        playerNode = Node(0, 0, "A")
+        playerNode = Node(0, 0, "Player")
         tempArray[0, 0] = playerNode
         nodesMap.append(playerNode)
 
@@ -149,7 +149,7 @@ class AStar:
             node.reset()
             node.setHCost(self.finalNode)
             node.setFCost()
-        self.firstNode.setGCost(0)
+        self.firstNode.setGCost()
         self.firstNode.findAdj(self.graph)
 
         while self.finalNode in self.graph:

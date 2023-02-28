@@ -1,4 +1,5 @@
 import AStarClass
+import Dijkstra
 from static import *
 from ProjectileClass import *
 from PlayerClass import *
@@ -95,7 +96,8 @@ def Play():
     canShootLeft, canShootRight, canTeleport = True, True, True
     backgroundDrawing.lines['startButton'].doDraw = False
     backgroundDrawing.lines['scoresButton'].doDraw = False
-    Path, nodesMap = AStarClass.createNodes(screenW, screenH)
+    PathA, nodesMap = AStarClass.createNodes(screenW, screenH)
+    PathD = Dijkstra.createPath(nodesMap)
     while True:
         # set fps
         clock.tick(fps)
@@ -121,9 +123,10 @@ def Play():
 
         button(leftMouse, mx, my, "xButton", Colours.red, quit)
 
-        Path.findPath(player)
+        PathA.findPath(player)
+        PathD.findPath(player)
         for node in nodesMap:
-            node.drawNode(screen, nodeFont, Path, nodesMap[-1])
+            node.drawNode(screen, nodeFont, PathA, nodesMap[-1])
 
         # define walls and pointer
         L1.setCoord(posVec.i + xChange, posVec.j + yChange, xChange * mL + posVec.i, yChange * mL + posVec.j)
