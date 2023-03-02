@@ -129,14 +129,6 @@ def Play():
         if collide:
             player.canJump = True
 
-        # stop acceleration once terminal velocity is reached
-        if vel.i > terminalVel.i > 0:
-            vel.limit(terminalVel, 'i', player)
-        elif vel.i < -terminalVel.i < 0:
-            terminalVel.reverse('i')
-            vel.limit(terminalVel, 'i', player)
-            terminalVel.reverse('i')
-
         # draw projectile to the screen
         projectile.drawProjectile(speed, screen)
         projectile2.drawProjectile(speed, screen)
