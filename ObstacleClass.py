@@ -26,7 +26,7 @@ class ObstacleSprite(pygame.sprite.Sprite):
         self.image = pygame.Surface((self.width, self.height))
         objectSprites.add(self)
         self.rect = self.image.fill(Colours.white)
-        self.rect = pygame.rect.Rect(self.x1, self.y1, self.width, self.height)
+        self.rect = pygame.rect.Rect(self.x1 + 15, self.y1 + 15, self.width-30, self.height-30)
         self.center = self.rect.center
 
     @classmethod
@@ -41,6 +41,16 @@ class ObstacleSprite(pygame.sprite.Sprite):
                 right = 30
             if (1, 0) in obstacle.offsets:
                 down = 30
+
+            if (-1, 1) in obstacle.offsets or (1, 1) in obstacle.offsets and right != 0:
+                right = 0
+            if (-1, -1) in obstacle.offsets or (1, -1) in obstacle.offsets and left != 0:
+                left = 0
+            if (-1, 1) in obstacle.offsets or (-1, -1) in obstacle.offsets and up != 0:
+                up = 0
+            if (1, 1) in obstacle.offsets or (1, -1) in obstacle.offsets and down != 0:
+                down = 0
+
             if not up:
                 collisionObj.append(Line(obstacle.x1 + 15 - left, obstacle.y1 + 15, obstacle.x2 - 15 + right, obstacle.y1 + 15, 1))
             if not left:
@@ -55,10 +65,7 @@ class ObstacleSprite(pygame.sprite.Sprite):
         objectSprites.draw(screen)
         for obstacle in objects:
             adjacencyList = obstacle.adjacencyMatrix.tolist()
-            name = "["
-            for row in adjacencyList:
-                name += "[{} {} {}] ".format(row[0], row[1], row[2])
-            name = name[:-1] + "]"
+            name = "[" + " ".join(["[{} {} {}]".format(row[0], row[1], row[2]) for row in adjacencyList]) + "]"
             image = pygame.image.load(f'ObstacleImages/{name}.xcf')
             screen.blit(image, (obstacle.x1, obstacle.y1))
 
@@ -103,7 +110,7 @@ class Map:
 
 
 gameMap = Map((101, 108), 19, 10)
-gameMap.addObstacle(1, (3, 3), (6, 1), (5, 4), (5, 5), (5, 6), (4, 5), (6, 5))
+gameMap.addObstacle(1, (3, 3), (6, 1), (5, 4), (5, 7), (5, 8), (5, 5), (5, 6), (4, 5), (6, 5))
 gameMap.grid[5, 0] = 0
 gameMap.grid[8, 0] = 0
 gameMap.createObstacles()

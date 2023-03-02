@@ -78,7 +78,6 @@ def Play():
         yChange = -sin(angle)
 
         backgroundDrawing.drawMap(screen)
-        player.drawPlayer(screen)
         player.facingLine(20, screen)
         ObstacleSprite.drawObstacle(gameMap.obstacles, screen)
         for line in collisionObj:
@@ -87,7 +86,7 @@ def Play():
         button(mx, my, "xButton", Colours.red, quit)
         if frame % 10 == 0:
             PathA.findPath(player)
-        # PathD.findPath(player)
+            # PathD.findPath(player)
         for node in nodesMap:
             node.drawNode(screen, nodeFont, PathA, nodesMap[-1])
 
@@ -115,7 +114,7 @@ def Play():
 
         # check if player stops moving
         if not keys[pygame.K_d] and not keys[pygame.K_a]:
-            vel.scale(deceleration, 'i')
+            vel.scale(deceleration, 'i', player)
 
         # check for collisions
         collide = player.objectCollide((objectSprites, invisibleSprites))
@@ -132,10 +131,10 @@ def Play():
 
         # stop acceleration once terminal velocity is reached
         if vel.i > terminalVel.i > 0:
-            vel.limit(terminalVel, 'i')
+            vel.limit(terminalVel, 'i', player)
         elif vel.i < -terminalVel.i < 0:
             terminalVel.reverse('i')
-            vel.limit(terminalVel, 'i')
+            vel.limit(terminalVel, 'i', player)
             terminalVel.reverse('i')
 
         # draw projectile to the screen
@@ -146,7 +145,7 @@ def Play():
         invisibleSprites.update(screen)
         projectile.update()
         projectile2.update()
-        player.update()
+        player.update(screen)
 
         # if portal makes collision draw a portal
         projectile.collision("left", portal, portalSprites)

@@ -18,7 +18,9 @@ class Vector:
             self.j -= vec.j
 
     # scales self with another vector
-    def scale(self, vec, component):
+    def scale(self, vec, component, player):
+        if not player.canJump:
+            return
         if component == "i":
             self.i *= vec.i
         if component == "j":
@@ -32,7 +34,9 @@ class Vector:
             self.j *= -1
 
     # applies a limit to a vector, so it can't increase
-    def limit(self, vec, component):
+    def limit(self, vec, component, player):
+        if not player.canJump:
+            return
         if component == "i":
             self.i = vec.i
         elif component == "j":
@@ -48,7 +52,7 @@ class Vector:
         self.setVec(newI, newJ)
 
     def vecAngleChange(self, current, new):
-        turns = new.direction - current.direction
+        turns = new.direction - current.direction + 2
         for turn in range(turns):
             self.rotateVec()
 

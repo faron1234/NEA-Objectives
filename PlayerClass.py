@@ -38,7 +38,8 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.width = self.image.get_width()
         self.height = self.image.get_height()
 
-    def update(self):
+    def update(self, screen):
+        self.drawPlayer(screen)
         animationCooldown = 5
 
         if not self.x and not self.y:
@@ -106,6 +107,7 @@ class PlayerSprite(pygame.sprite.Sprite):
                 self.canJump = True
 
     def portalCollide(self):
+        print(vel.i, vel.j, self.canJump)
         collision = None
         for sprite in portalSprites:
             if sprite.rect.colliderect(self.rect.x, self.rect.y, self.width, self.height):
