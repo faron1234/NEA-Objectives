@@ -46,30 +46,7 @@ def createBackground(screenW, screenH):
     # add all drawings for background screen
     backgroundDrawing.addObj(
         # fill in background colours
-        Draw(Colours.white, "rect", [[30, 30], [screenW - 30 * 2, screenH - 30 * 2]], 40),
-        Draw(Colours.darkGrey, "rect", [[0, 0], [screenW, screenH]], 30),
-        Draw(Colours.darkGrey, "rect", [[70, 70], [screenW - 70 * 2, screenH - 70 * 2]]),
-
-        # draw borderlines
-        Draw(Colours.black, "rect", [[30, 30], [screenW - 30 * 2, screenH - 30 * 2]], 3),
-        Draw(Colours.black, "rect", [[70, 70], [screenW - 70 * 2, screenH - 70 * 2]], 3),
-
-        # draw diagonal lines
-        Draw(Colours.black, "line", [[32, 32], [72, 72]], 5),
-        Draw(Colours.black, "line", [[32, screenH - 32], [72, screenH - 72]], 5),
-        Draw(Colours.black, "line", [[screenW - 32, 32], [screenW - 72, 72]], 5),
-        Draw(Colours.black, "line", [[screenW - 32, screenH - 32], [screenW - 72, screenH - 72]], 5),
-
-        # left door
-        Draw(Colours.black, "line", [[35, screenH - 35], [35, screenH - 130]], 3),
-        Draw(Colours.black, "line", [[35, screenH - 130], [66, screenH - 161]], 4),
-        Draw(Colours.black, "line", [[67, screenH - 67], [67, screenH - 162]], 3),
-
-        # right door
-        Draw(Colours.black, "line", [[screenW - 36, screenH - 131], [screenW - 36, screenH - 35]], 3),
-        Draw(Colours.black, "line", [[screenW - 67, screenH - 162], [screenW - 37, screenH - 132]], 4),
-        Draw(Colours.black, "line", [[screenW - 67, screenH - 162], [screenW - 67, screenH - 67]], 3),
-
+        Draw(Colours.darkGrey, "rect", [[0, 0], [screenW, screenH]]),
         # x button
         Draw(Colours.red, "line", [[screenW, 0], [screenW - 20, 20]], 2),
         Draw(Colours.red, "line", [[screenW - 20, 0], [screenW, 20]], 2),

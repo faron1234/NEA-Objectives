@@ -57,10 +57,10 @@ class Line:
             xi = self.x1 + (t * s1X)
             yi = self.y1 + (t * s1Y)
             distance = dist((xi, yi), (player.x, player.y))
-            if projectile == 1:
+            if projectile.name == 1:
                 line.xi1 = xi
                 line.yi1 = yi
-            elif projectile == 2:
+            elif projectile.name == 2:
                 line.xi2 = xi
                 line.yi2 = yi
             if distance < shortest:

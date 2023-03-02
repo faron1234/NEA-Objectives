@@ -2,7 +2,7 @@ from static import Colours
 from math import inf, dist
 import pygame
 from TextClass import Text
-import numpy as np
+from ObstacleClass import gameMap
 
 
 class Node:
@@ -62,6 +62,8 @@ class Node:
     # used to add an adjacent node
     def addAdj(self, *nodes):
         for item in nodes:
+            if not item:
+                continue
             self.adjNodes.update({item: self.findDist(item)})
 
     # creates a dictionary of adjacent nodes and adds these to itself
@@ -75,46 +77,34 @@ class Node:
         self.addAdj(self.closestNode)
 
     @classmethod
-    def dynamicNodes(cls, screenW, screenH):
+    def dynamicNodes(cls):
         gap = (101, 108)
         nodesMap = []
-        tempArray = np.empty(((screenH // gap[1]) + 0, (screenW // gap[0]) + 0), dtype=object)
-        previousNode = None
         playerNode = Node(0, 0, "Player")
-        tempArray[0, 0] = playerNode
         nodesMap.append(playerNode)
 
-        for i in range((screenH // gap[1]) + 0):
-            for j in range((screenW // gap[0]) + 0):
-                newNode = Node((j * gap[0]) + 0, (i * gap[1]) + 0)
-                tempArray[i, j] = newNode
-                if previousNode:
-                    newNode.addAdj(previousNode)
-                    previousNode.addAdj(newNode)
+        tempArray = [[Node((j * gap[0]) + 51, (i * gap[1]) + 54) if gameMap.grid[i, j] != 1 else None for j in range(gameMap.width)] for i in
+                     range(gameMap.height)]
+        for i, row in enumerate(tempArray):
+            for j, node in enumerate(row):
+                if not node:
+                    continue
+                if j < gameMap.width - 1:
+                    node.addAdj(tempArray[i][j + 1])
+                if i < gameMap.height - 1:
+                    node.addAdj(tempArray[i + 1][j])
 
-                    # top-left diagonal
-                    if i > 0 and j > 0 and tempArray[i - 1, j - 1]:
-                        newNode.addAdj(tempArray[i - 1, j - 1])
-                    # top-right diagonal
-                    if i > 0 and j < tempArray.shape[1] - 1 and tempArray[i - 1, j + 1]:
-                        newNode.addAdj(tempArray[i - 1, j + 1])
-                    # bottom-left diagonal
-                    if i < tempArray.shape[0] - 1 and j > 0 and tempArray[i + 1, j - 1]:
-                        newNode.addAdj(tempArray[i + 1, j - 1])
-                        # bottom-right diagonal
-                    if i < tempArray.shape[0] - 1 and j < tempArray.shape[1] - 1 and tempArray[i + 1, j + 1]:
-                        newNode.addAdj(tempArray[i + 1, j + 1])
+                if i > 0 and j > 0 and tempArray[i - 1][j - 1]:
+                    node.addAdj(tempArray[i - 1][j - 1])
+                if i > 0 and j < gameMap.width - 1 and tempArray[i - 1][j + 1]:
+                    node.addAdj(tempArray[i - 1][j + 1])
+                if i < gameMap.height - 1 and j > 0 and tempArray[i + 1][j - 1]:
+                    node.addAdj(tempArray[i + 1][j - 1])
+                if i < gameMap.height - 1 and j < gameMap.width - 1 and tempArray[i + 1][j + 1]:
+                    node.addAdj(tempArray[i + 1][j + 1])
 
-                previousNode = newNode
-            previousNode = None
-
-        for i in range(tempArray.shape[0]):
-            for j in range(tempArray.shape[1]):
-                if j < tempArray.shape[1] - 1:
-                    tempArray[i, j].addAdj(tempArray[i, j + 1])
-                if i < tempArray.shape[0] - 1:
-                    tempArray[i, j].addAdj(tempArray[i + 1, j])
-                nodesMap.append(tempArray[i, j])
+                nodesMap.append(node)
+        print(nodesMap)
         return nodesMap, playerNode
 
 
@@ -172,7 +162,7 @@ class AStar:
         self.shortestPath.insert(0, self.firstNode)
 
 
-def createNodes(screenW, screenH):
-    nodesMap, playerNode = Node.dynamicNodes(screenW, screenH)
+def createNodes():
+    nodesMap, playerNode = Node.dynamicNodes()
     Path = AStar(nodesMap, playerNode)
     return Path, nodesMap

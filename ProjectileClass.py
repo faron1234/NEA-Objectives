@@ -1,10 +1,13 @@
 from math import sin, cos
 import pygame
+from PlayerClass import player
+from ObstacleClass import collisionObj
 
 
 class ProjectileSprite(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, name):
         super().__init__()
+        self.name = name
         self.angle = None
         self.x = None
         self.y = None
@@ -14,6 +17,7 @@ class ProjectileSprite(pygame.sprite.Sprite):
         self.intersectionLine = None
         self.image = pygame.Surface([5, 5])
         self.rect = self.image.get_rect()
+        self.time = 0
 
     # returns a specific attribute of the projectile
     def getAttr(self, attribute):
@@ -30,7 +34,7 @@ class ProjectileSprite(pygame.sprite.Sprite):
 
     # draws the portal to the screen and calls the update position method, passing in a speed
     def drawProjectile(self, speedCoefficient, screen):
-        if not self.x and not self.y:
+        if self.x is None or self.y is None:
             return
         self.updatePos(speedCoefficient)
         pygame.draw.rect(screen, self.colour, self.rect, 2)
@@ -43,20 +47,41 @@ class ProjectileSprite(pygame.sprite.Sprite):
         self.colour = col
         self.intersectionLine = intersectionLine
 
+    def reset(self):
+        self.x, self.y = None, None
+        self.intersectionLine = None
+
     # updates the position of the projectile on the y and x-axis
     def updatePos(self, speedCoefficient):
-        if self.angle is not None:
-            self.y -= sin(self.angle) * speedCoefficient
-            self.x += cos(self.angle) * speedCoefficient
+        if not self.angle:
+            return
+        self.y -= sin(self.angle) * speedCoefficient
+        self.x += cos(self.angle) * speedCoefficient
+
+    def expire(self):
+        self.time += 1
+        if self.time > 100:
+            self.x, self.y = None, None
+            self.time = 0
 
     # detects for collisions
-    def collision(self, *sprites):
-        for spriteGroup in sprites:
-            if pygame.sprite.spritecollide(self, spriteGroup, False):
-                self.x, self.y = None, None
-                return True
+    def collision(self, side, portalType, *sprites):
+        if any(pygame.sprite.spritecollide(self, spriteGroup, False) for spriteGroup in sprites):
+            self.x, self.y = None, None
+            self.time = 0
+            player.setCanShoot(side, True)
+            if self.intersectionLine:
+                portalType.setPos(self)
+                portalType.setLine(self.intersectionLine)
+
+    def startProjectile(self, angle, side, line, colour):
+        # if mouse button is pressed a projectile is created
+        if player.getMousePress(side) and player.getCanShoot(side):
+            intersectionLine = line.intersection(collisionObj, self)
+            self.setAttributes(angle, player.x + player.xChange, player.y + player.yChange, colour, intersectionLine)
+            player.setCanShoot(side, False)
 
 
 projectileSprites = pygame.sprite.Group()
-projectile = ProjectileSprite()
-projectile2 = ProjectileSprite()
+projectile = ProjectileSprite(1)
+projectile2 = ProjectileSprite(2)

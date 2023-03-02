@@ -42,6 +42,16 @@ class Vector:
         self.i = newI
         self.j = newJ
 
+    def rotateVec(self):
+        newI = -self.j
+        newJ = self.i
+        self.setVec(newI, newJ)
+
+    def vecAngleChange(self, current, new):
+        turns = new.direction - current.direction
+        for turn in range(turns):
+            self.rotateVec()
+
 
 gravity = Vector(0, 1)
 vel = Vector(0, 0)

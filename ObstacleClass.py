@@ -42,13 +42,13 @@ class ObstacleSprite(pygame.sprite.Sprite):
             if (1, 0) in obstacle.offsets:
                 down = 30
             if not up:
-                collisionObj.append(Line(obstacle.x1 + 15 - left, obstacle.y1 + 15, obstacle.x2 - 15 + right, obstacle.y1 + 15, "up"))
+                collisionObj.append(Line(obstacle.x1 + 15 - left, obstacle.y1 + 15, obstacle.x2 - 15 + right, obstacle.y1 + 15, 1))
             if not left:
-                collisionObj.append(Line(obstacle.x1 + 15, obstacle.y1 + 15 - up, obstacle.x1 + 15, obstacle.y2 - 15 + down, "left"))
+                collisionObj.append(Line(obstacle.x1 + 15, obstacle.y1 + 15 - up, obstacle.x1 + 15, obstacle.y2 - 15 + down, 4))
             if not down:
-                collisionObj.append(Line(obstacle.x1 + 15 - left, obstacle.y2 - 15, obstacle.x2 - 15 + right, obstacle.y2 - 15, "down"))
+                collisionObj.append(Line(obstacle.x1 + 15 - left, obstacle.y2 - 15, obstacle.x2 - 15 + right, obstacle.y2 - 15, 3))
             if not right:
-                collisionObj.append(Line(obstacle.x2 - 15, obstacle.y1 + 15 - up, obstacle.x2 - 15, obstacle.y2 - 15 + down, "right"))
+                collisionObj.append(Line(obstacle.x2 - 15, obstacle.y1 + 15 - up, obstacle.x2 - 15, obstacle.y2 - 15 + down, 2))
 
     @classmethod
     def drawObstacle(cls, objects, screen):
@@ -68,9 +68,8 @@ class ObstacleSprite(pygame.sprite.Sprite):
         for offset in offsets:
             row = self.cell[0] + offset[0]
             col = self.cell[1] + offset[1]
-            if 0 <= row < gameGrid.height and 0 <= col < gameGrid.width:
-                if gameGrid.grid[row, col] == 1:
-                    self.offsets.append(offset)
+            if 0 <= row < gameGrid.height and 0 <= col < gameGrid.width and gameGrid.grid[row, col] == 1:
+                self.offsets.append(offset)
 
 
 class Map:

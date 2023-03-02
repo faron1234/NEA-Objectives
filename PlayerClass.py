@@ -1,7 +1,8 @@
-from math import sin, cos, atan, pi, ceil, floor
+from math import sin, cos, atan, pi, atan2, ceil, floor
 from static import Colours
 import pygame
-from VectorClass import posVec
+from VectorClass import posVec, vel
+from PortalClass import portal, portal2, portalSprites
 
 
 class PlayerSprite(pygame.sprite.Sprite):
@@ -27,6 +28,11 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.movingRight = False
         self.movingLeft = False
         self.lastMoved = None
+        self.canShootLeft = False
+        self.canShootRight = False
+        self.canTeleport = False
+        self.leftMouse = False
+        self.rightMouse = False
         self.col = Colours.black
         self.rect = self.image.get_rect()
         self.width = self.image.get_width()
@@ -37,32 +43,42 @@ class PlayerSprite(pygame.sprite.Sprite):
 
         if not self.x and not self.y:
             return
+
         self.rect.center = (self.x, self.y)
-
-        # animation
         self.counter += 1
-        if self.counter <= animationCooldown:
-            return
 
-        self.counter = 0
-        self.index += 1
+        if self.counter > animationCooldown:
+            self.counter, self.index = 0, self.index + 1
 
         if not self.movingRight and not self.movingLeft:
             self.index = 2
-            if self.lastMoved == "right":
-                self.image = self.SpritesRight[self.index]
-            elif self.lastMoved == "left":
-                self.image = self.SpritesLeft[self.index]
+            self.image = self.SpritesRight[self.index] if self.lastMoved == "right" else self.SpritesLeft[self.index]
             return
 
-        if self.movingRight:
-            if self.index >= len(self.SpritesRight):
-                self.index = 0
-            self.image = self.SpritesRight[self.index]
-        if self.movingLeft:
-            if self.index >= len(self.SpritesLeft):
-                self.index = 0
-            self.image = self.SpritesLeft[self.index]
+        sprites = self.SpritesRight if self.movingRight else self.SpritesLeft
+        self.index %= len(sprites)
+        self.image = sprites[self.index]
+
+    def getCanShoot(self, side):
+        if side == "left":
+            return self.canShootLeft
+        elif side == "right":
+            return self.canShootRight
+
+    def setCanShoot(self, side, state):
+        if side == "left":
+            self.canShootLeft = state
+        elif side == "right":
+            self.canShootRight = state
+
+    def getMousePress(self, side):
+        if side == "left":
+            return self.leftMouse
+        elif side == "right":
+            return self.rightMouse
+
+    def setCanTeleport(self, state):
+        self.canTeleport = state
 
     def setPos(self, newX, newY):
         self.x, self.y = newX, newY
@@ -70,38 +86,45 @@ class PlayerSprite(pygame.sprite.Sprite):
     def drawPlayer(self, screen):
         screen.blit(self.image, self.rect)
 
-    def objectCollide(self, sprites, vel, canTeleport):
-        for spriteGroup in sprites:
-            for sprite in spriteGroup:
-                if vel.i > 0:
-                    if sprite.rect.colliderect(self.rect.x + ceil(vel.i), self.rect.y, self.width, self.height):
-                        if not canTeleport:
-                            self.rect.right = sprite.rect.left
-                            continue
-                        vel.i = 0
-                elif vel.i <= 0:
-                    if sprite.rect.colliderect(self.rect.x + floor(vel.i), self.rect.y, self.width, self.height):
-                        if not canTeleport:
-                            self.rect.left = sprite.rect.right
-                            continue
-                        vel.i = 0
-                if sprite.rect.colliderect(self.rect.x, self.rect.y + vel.j, self.width, self.height):
-                    if vel.j < 0:
-                        if not canTeleport:
-                            self.rect.bottom = sprite.rect.top
-                            continue
-                        vel.j = sprite.rect.bottom - self.rect.top
-                    elif vel.j >= 0:
-                        if not canTeleport:
-                            self.rect.top = sprite.rect.bottom
-                            continue
-                        vel.j = sprite.rect.top - self.rect.bottom
-                        self.canJump = True
-
-    def portalCollide(self, sprites):
+    def objectCollide(self, sprites):
+        if not self.canTeleport:
+            return
+        sprites = [sprite for spriteGroup in sprites for sprite in spriteGroup]
         for sprite in sprites:
+            if vel.i > 0 and sprite.rect.colliderect(self.rect.x + ceil(vel.i), self.rect.y, self.width, self.height):
+                vel.i = 0
+            elif vel.i <= 0 and sprite.rect.colliderect(self.rect.x + floor(vel.i), self.rect.y, self.width, self.height):
+                vel.i = 0
+
+            if not sprite.rect.colliderect(self.rect.x, self.rect.y + vel.j, self.width, self.height):
+                continue
+
+            if vel.j < 0:
+                vel.j = sprite.rect.bottom - self.rect.top
+            else:
+                vel.j = sprite.rect.top - self.rect.bottom
+                self.canJump = True
+
+    def portalCollide(self):
+        collision = None
+        for sprite in portalSprites:
             if sprite.rect.colliderect(self.rect.x, self.rect.y, self.width, self.height):
-                return sprite
+                collision = sprite
+        if not collision:
+            self.setCanTeleport(True)
+        if not self.canTeleport:
+            return
+        if collision and portal.x and portal2.x:
+            self.teleport(collision)
+            self.setCanTeleport(False)
+
+    def teleport(self, portalType):
+        if portalType.name == 1:
+            posVec.setVec(portal2.x, portal2.y)
+            vel.vecAngleChange(portal, portal2)
+        elif portalType.name == 2:
+            posVec.setVec(portal.x, portal.y)
+            vel.vecAngleChange(portal2, portal)
 
     def changeCol(self, newCol):
         self.col = newCol
@@ -114,29 +137,13 @@ class PlayerSprite(pygame.sprite.Sprite):
                            [self.x + self.xChange, self.y + self.yChange], 3)
 
     # finds what angle the player is facing
-    def findAngle(self, mx, my, opposite, adjacent):
-        # Northeast quadrant
-        if mx > self.x and my < self.y:
-            self.facingAngle = atan(opposite / adjacent)
-        # Northwest quadrant and Southwest quadrant
-        elif mx < self.x and my < self.y or mx < self.x and my > self.y:
-            self.facingAngle = pi + atan(opposite / adjacent)
-        # Southeast quadrant
-        elif mx > self.x and my > self.y:
-            self.facingAngle = pi * 2 + atan(opposite / adjacent)
-        # North
-        elif mx == self.x and my < self.y:
-            self.facingAngle = pi / 2
-        # South
-        elif mx == self.x and my > self.y:
-            self.facingAngle = 3 * pi / 2
-        # East
-        elif my == self.y and mx > self.x:
-            self.facingAngle = 0
-        # West
-        elif my == self.y and mx < self.x:
-            self.facingAngle = pi
+    def findAngle(self, mx, my):
+        opposite, adjacent = mx - self.x, my - self.y
+        self.facingAngle = -atan2(adjacent, opposite)
         return self.facingAngle
+
+    def reset(self):
+        self.leftMouse, self.movingLeft, self.movingRight, self.rightMouse = False, False, False, False
 
 
 playerSprites = pygame.sprite.Group()
