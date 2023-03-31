@@ -63,6 +63,9 @@ def Play():
         player.facingLine(20, screen)
         ObstacleSprite.drawObstacle(gameMap.obstacles, screen)
 
+        for obstacle in collisionObj:
+            obstacle.drawObstacle()
+
         # check if player moves left or right
         keys = pygame.key.get_pressed()
         if keys[pygame.K_d]:
